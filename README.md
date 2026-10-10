@@ -21,9 +21,22 @@ Industrial HSE (health, safety, environment) platform for plant managers, enviro
 npm install
 cp .env.example .env.local      # fill in your Supabase values
 npx prisma validate
-npx prisma migrate dev          # once prisma/schema.prisma is added
+npx prisma migrate dev --create-only --name init
+#   append prisma/constraints.sql to the generated migration.sql, then:
+npx prisma migrate dev
+#   run prisma/supabase-auth-trigger.sql once in the Supabase SQL editor
 npm run dev
 ```
+
+## Database
+
+- `prisma/schema.prisma`: all models for Modules 1 to 5 (23 models, 27 enums).
+- `prisma/constraints.sql`: CHECK constraints and partial unique indexes Prisma can't express (weighbridge arithmetic, 5x5 risk scores, one approved risk-assessment version, CAPA origin).
+- `prisma/supabase-auth-trigger.sql`: copies new Supabase Auth users into `users`, plus bootstrap statements for a first site and admin.
+
+## Foundation (stage 1)
+
+Shared code every module builds on: `src/lib/auth` (session, RBAC matrix, `authorize()` guard), `src/lib/action-result.ts`, `src/lib/reference.ts` (atomic reference numbers), `src/lib/activity.ts` (audit trail), `src/lib/utils.ts` (timezone-aware dates), `src/lib/validations/helpers.ts`, `src/lib/data/params.ts`, Supabase clients and middleware.
 
 ## Conventions
 

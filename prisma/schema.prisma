@@ -1,0 +1,892 @@
+// ─────────────────────────────────────────────────────────────
+// SafetyComply AI: Prisma schema (Modules 1 to 5)
+// Database: PostgreSQL (Supabase)
+// Extra constraints Prisma can't express live in prisma/constraints.sql
+// ─────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL") // pooled (pgbouncer): runtime
+  directUrl = env("DIRECT_URL")   // direct: migrations
+}
+
+// ═════════════════════════════════════════════════════════════
+// ENUMS
+// ═════════════════════════════════════════════════════════════
+
+enum Role {
+  ADMIN
+  HSE_MANAGER
+  INSPECTOR
+  AUDITOR
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ActivityEntity {
+  INCIDENT
+  RCA
+  CAPA
+  WASTE_MANIFEST
+  LANDFILL
+  RISK_ASSESSMENT
+  CHECKLIST
+  INSPECTION
+  NCR
+}
+
+// ── Module 1: compliance ─────────────────────────────────────
+enum RequirementCategory {
+  AIR_EMISSIONS
+  WATER_DISCHARGE
+  WASTE_MANAGEMENT
+  OCCUPATIONAL_SAFETY
+  FIRE_SAFETY
+  CHEMICAL_MANAGEMENT
+  NOISE
+  PERMITS_LICENSES
+  OTHER
+}
+
+enum ComplianceStatus {
+  COMPLIANT
+  PARTIALLY_COMPLIANT
+  NON_COMPLIANT
+  NOT_APPLICABLE
+  PENDING_REVIEW
+}
+
+// ── Module 2: incidents, RCA, CAPA ───────────────────────────
+enum IncidentType {
+  INJURY
+  ILLNESS
+  NEAR_MISS
+  PROPERTY_DAMAGE
+  ENVIRONMENTAL_RELEASE
+  FIRE_EXPLOSION
+  PROCESS_SAFETY
+  SECURITY
+  OTHER
+}
+
+enum IncidentSeverity {
+  MINOR
+  MODERATE
+  MAJOR
+  CRITICAL
+  CATASTROPHIC
+}
+
+enum IncidentStatus {
+  REPORTED
+  UNDER_INVESTIGATION
+  RCA_COMPLETE
+  CAPA_IN_PROGRESS
+  CLOSED
+}
+
+enum RcaMethod {
+  FIVE_WHYS
+  FISHBONE
+  FAULT_TREE
+  BOW_TIE
+}
+
+enum RcaStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+}
+
+enum RootCauseCategory {
+  HUMAN_FACTORS
+  EQUIPMENT_FAILURE
+  PROCEDURE_GAP
+  TRAINING_GAP
+  MANAGEMENT_SYSTEM
+  MATERIAL_OR_SUPPLIER
+  ENVIRONMENTAL_CONDITIONS
+  DESIGN_OR_ENGINEERING
+}
+
+enum CapaType {
+  CORRECTIVE
+  PREVENTIVE
+}
+
+/// OVERDUE is derived from dueDate, never stored.
+enum CapaStatus {
+  OPEN
+  IN_PROGRESS
+  PENDING_VERIFICATION
+  CLOSED
+  CANCELLED
+}
+
+enum EscalationTrigger {
+  AUTOMATIC
+  MANUAL
+}
+
+// ── Module 3: waste & discharge ──────────────────────────────
+enum WasteType {
+  HAZARDOUS
+  NON_HAZARDOUS
+  INERT
+  RECYCLABLE
+  BIOMEDICAL
+  RADIOACTIVE
+  E_WASTE
+  SLUDGE
+}
+
+enum ManifestStatus {
+  DISPATCHED
+  IN_TRANSIT
+  DISCHARGED
+  REJECTED
+  CANCELLED
+}
+
+enum DisposalMethod {
+  LANDFILL
+  INCINERATION
+  RECYCLING
+  TREATMENT
+  REUSE
+  STORAGE
+}
+
+enum DischargeMedium {
+  WASTEWATER
+  STORMWATER
+  AIR_STACK
+  GROUNDWATER
+  SURFACE_WATER
+}
+
+// ── Module 4: risk assessment ────────────────────────────────
+enum AssessmentType {
+  JSA  // Job Safety Analysis
+  HIRA // Hazard Identification & Risk Assessment
+}
+
+/// EXPIRED is derived from nextReviewDate on approved assessments.
+enum AssessmentStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  EXPIRED
+  ARCHIVED
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  EXTREME
+}
+
+enum ControlHierarchy {
+  ELIMINATION
+  SUBSTITUTION
+  ENGINEERING
+  ADMINISTRATIVE
+  PPE
+}
+
+// ── Module 5: audits & inspections ───────────────────────────
+enum AuditStandard {
+  ISO_14001
+  ISO_45001
+  LOCAL_REGULATORY
+  INTERNAL_HSE
+}
+
+/// OVERDUE is derived from scheduledDate, never stored.
+enum InspectionStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum InspectionResult {
+  COMPLIANT
+  NON_COMPLIANT
+  NOT_APPLICABLE
+}
+
+enum NcrSeverity {
+  MINOR
+  MAJOR
+  CRITICAL
+}
+
+enum NcrStatus {
+  OPEN
+  CAPA_ISSUED
+  CLOSED
+}
+
+// ═════════════════════════════════════════════════════════════
+// CORE: USERS, SITES, SHARED INFRASTRUCTURE
+// ═════════════════════════════════════════════════════════════
+
+/// `id` MUST equal the Supabase `auth.users.id` (synced by the trigger in prisma/supabase-auth-trigger.sql).
+model User {
+  id        String   @id @db.Uuid
+  email     String   @unique
+  fullName  String
+  role      Role     @default(INSPECTOR)
+  jobTitle  String?
+  phone     String?
+  avatarUrl String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sites                UserSite[]
+  ownedRequirements    LegalRequirement[]     @relation("RequirementOwner")
+  conductedAudits      ComplianceAudit[]      @relation("AuditAuditor")
+  reportedIncidents    Incident[]             @relation("IncidentReporter")
+  ledRcas              RcaAnalysis[]          @relation("RcaLead")
+  approvedRcas         RcaAnalysis[]          @relation("RcaApprover")
+  assignedCapas        CapaAction[]           @relation("CapaAssignee")
+  createdCapas         CapaAction[]           @relation("CapaCreator")
+  verifiedCapas        CapaAction[]           @relation("CapaVerifier")
+  escalatedCapas       CapaAction[]           @relation("CapaEscalatedTo")
+  escalationsReceived  CapaEscalation[]       @relation("EscalationTo")
+  activityLogs         ActivityLog[]          @relation("ActivityActor")
+  recordedManifests    WasteManifest[]        @relation("ManifestRecorder")
+  sampledDischarges    DischargeLog[]         @relation("DischargeSampler")
+  weighbridgeTickets   WeighbridgeTicket[]    @relation("TicketOperator")
+  assessedRisks        RiskAssessment[]       @relation("RiskAssessor")
+  approvedRisks        RiskAssessment[]       @relation("RiskApprover")
+  responsibleHazards   HazardItem[]           @relation("HazardResponsible")
+  createdChecklists    AuditChecklist[]       @relation("ChecklistCreator")
+  inspectionsAssigned  AuditInspection[]      @relation("InspectionInspector")
+  inspectionsCreated   AuditInspection[]      @relation("InspectionCreator")
+  inspectionResponses  InspectionResponse[]   @relation("ResponseAnswerer")
+  raisedNcrs           NonConformanceReport[] @relation("NcrRaiser")
+
+  @@index([role])
+  @@map("users")
+}
+
+model Site {
+  id        String   @id @default(cuid())
+  code      String   @unique // e.g. "PLT-001"
+  name      String
+  address   String?
+  city      String?
+  country   String   @default("DZ")
+  timezone  String   @default("Africa/Algiers")
+  latitude  Decimal? @db.Decimal(9, 6)
+  longitude Decimal? @db.Decimal(9, 6)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members            UserSite[]
+  legalRequirements  LegalRequirement[]
+  complianceAudits   ComplianceAudit[]
+  incidents          Incident[]
+  capaActions        CapaAction[]
+  escalationRules    EscalationRule[]
+  activityLogs       ActivityLog[]
+  wasteManifests     WasteManifest[]
+  weighbridgeTickets WeighbridgeTicket[]
+  dischargeLogs      DischargeLog[]
+  landfillCapacity   LandfillCapacity?
+  riskAssessments    RiskAssessment[]
+  auditInspections   AuditInspection[]
+  ncrs               NonConformanceReport[]
+
+  @@map("sites")
+}
+
+/// Site-access scoping (many-to-many). The global role lives on User.
+model UserSite {
+  userId     String   @db.Uuid
+  siteId     String
+  assignedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@id([userId, siteId])
+  @@index([siteId])
+  @@map("user_sites")
+}
+
+/// Append-only audit trail. actorId = null means the system (e.g. the escalation sweep).
+model ActivityLog {
+  id         String         @id @default(cuid())
+  siteId     String
+  actorId    String?        @db.Uuid
+  entityType ActivityEntity
+  entityId   String
+  action     String         // "capa.status_changed", "incident.closed", ...
+  metadata   Json?
+  createdAt  DateTime       @default(now())
+
+  site  Site  @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  actor User? @relation("ActivityActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId, createdAt])
+  @@index([siteId, createdAt])
+  @@map("activity_logs")
+}
+
+/// Atomic per-year counters for reference numbers (key = "CAPA-2026").
+model ReferenceCounter {
+  key   String @id
+  value Int    @default(0)
+
+  @@map("reference_counters")
+}
+
+// ═════════════════════════════════════════════════════════════
+// MODULE 1: LEGAL COMPLIANCE MATRIX
+// ═════════════════════════════════════════════════════════════
+
+model LegalRequirement {
+  id                  String              @id @default(cuid())
+  siteId              String
+  ownerId             String?             @db.Uuid
+  title               String
+  citation            String // e.g. "Décret exécutif n° 06-198, Art. 12"
+  authority           String
+  jurisdiction        String // e.g. "National", "Wilaya", "ISO"
+  category            RequirementCategory
+  description         String?             @db.Text
+  obligation          String              @db.Text // what the site must do
+  sourceUrl           String?
+  effectiveDate       DateTime?
+  reviewFrequencyDays Int?
+  nextReviewDate      DateTime?
+  currentStatus       ComplianceStatus    @default(PENDING_REVIEW)
+  isActive            Boolean             @default(true)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  site          Site              @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  owner         User?             @relation("RequirementOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  audits        ComplianceAudit[]
+  dischargeLogs DischargeLog[]
+
+  @@index([siteId, category])
+  @@index([siteId, currentStatus])
+  @@index([nextReviewDate])
+  @@map("legal_requirements")
+}
+
+model ComplianceAudit {
+  id             String           @id @default(cuid())
+  siteId         String
+  requirementId  String
+  auditorId      String           @db.Uuid
+  auditDate      DateTime
+  status         ComplianceStatus
+  findings       String?          @db.Text
+  gapDescription String?          @db.Text
+  gapSeverity    Priority?
+  evidenceUrls   String[]         // http(s) references only
+  nextAuditDue   DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  site        Site             @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  requirement LegalRequirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  auditor     User             @relation("AuditAuditor", fields: [auditorId], references: [id], onDelete: Restrict)
+  capaActions CapaAction[]
+
+  @@index([siteId, auditDate])
+  @@index([requirementId, auditDate])
+  @@index([status])
+  @@map("compliance_audits")
+}
+
+// ═════════════════════════════════════════════════════════════
+// MODULE 2: INCIDENT & CAPA ENGINE
+// ═════════════════════════════════════════════════════════════
+
+model Incident {
+  id                      String           @id @default(cuid())
+  referenceNo             String           @unique // "INC-2026-0001"
+  siteId                  String
+  reportedById            String           @db.Uuid
+  title                   String
+  description             String           @db.Text
+  type                    IncidentType
+  severity                IncidentSeverity
+  status                  IncidentStatus   @default(REPORTED)
+  occurredAt              DateTime
+  location                String?
+  immediateActions        String?          @db.Text
+  injuredCount            Int              @default(0)
+  fatalityCount           Int              @default(0)
+  lostTimeDays            Int              @default(0)
+  isRecordable            Boolean          @default(false)
+  isReportableToAuthority Boolean          @default(false)
+  authorityReportedAt     DateTime?
+  authorityReferenceNo    String?
+  closureNotes            String?          @db.Text
+  closedAt                DateTime?
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+
+  site        Site         @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  reporter    User         @relation("IncidentReporter", fields: [reportedById], references: [id], onDelete: Restrict)
+  rca         RcaAnalysis?
+  capaActions CapaAction[]
+
+  @@index([siteId, occurredAt])
+  @@index([siteId, status])
+  @@index([severity])
+  @@index([reportedById])
+  @@map("incidents")
+}
+
+model RcaAnalysis {
+  id                  String             @id @default(cuid())
+  incidentId          String             @unique
+  method              RcaMethod          @default(FIVE_WHYS)
+  status              RcaStatus          @default(DRAFT)
+  leadId              String             @db.Uuid
+  approvedById        String?            @db.Uuid
+  problemStatement    String             @db.Text
+  /// 5-Whys chain: [{ "level": 1, "why": "...", "answer": "..." }, ...]
+  whyChain            Json?
+  /// Fishbone / fault-tree / bow-tie structured data
+  diagramData         Json?
+  rootCause           String?            @db.Text
+  rootCauseCategory   RootCauseCategory?
+  contributingFactors String[]
+  completedAt         DateTime?
+  approvedAt          DateTime?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  incident    Incident     @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  lead        User         @relation("RcaLead", fields: [leadId], references: [id], onDelete: Restrict)
+  approver    User?        @relation("RcaApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  capaActions CapaAction[]
+
+  @@index([status])
+  @@map("rca_analyses")
+}
+
+model CapaAction {
+  id          String @id @default(cuid())
+  referenceNo String @unique // "CAPA-2026-0001"
+  siteId      String
+
+  // Origin: at least one is required (DB CHECK in prisma/constraints.sql)
+  incidentId   String?
+  rcaId        String?
+  auditId      String?
+  inspectionId String?
+
+  title       String
+  description String     @db.Text
+  type        CapaType
+  priority    Priority   @default(MEDIUM)
+  status      CapaStatus @default(OPEN)
+
+  assigneeId      String    @db.Uuid
+  createdById     String    @db.Uuid
+  originalDueDate DateTime?
+  dueDate         DateTime
+  completedAt     DateTime?
+  completionNotes String?   @db.Text
+
+  verifiedById       String?   @db.Uuid
+  verifiedAt         DateTime?
+  effectivenessNotes String?   @db.Text
+
+  escalationLevel Int       @default(0) // 0 = none, max 3
+  escalatedToId   String?   @db.Uuid
+  lastEscalatedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  site        Site                   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  incident    Incident?              @relation(fields: [incidentId], references: [id], onDelete: SetNull)
+  rca         RcaAnalysis?           @relation(fields: [rcaId], references: [id], onDelete: SetNull)
+  audit       ComplianceAudit?       @relation(fields: [auditId], references: [id], onDelete: SetNull)
+  inspection  AuditInspection?       @relation(fields: [inspectionId], references: [id], onDelete: SetNull)
+  assignee    User                   @relation("CapaAssignee", fields: [assigneeId], references: [id], onDelete: Restrict)
+  createdBy   User                   @relation("CapaCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  verifiedBy  User?                  @relation("CapaVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
+  escalatedTo User?                  @relation("CapaEscalatedTo", fields: [escalatedToId], references: [id], onDelete: SetNull)
+  escalations CapaEscalation[]
+  hazardItems HazardItem[]
+  ncrs        NonConformanceReport[]
+
+  @@index([siteId, status])
+  @@index([assigneeId, status])
+  @@index([dueDate, status])
+  @@index([incidentId])
+  @@index([auditId])
+  @@index([inspectionId])
+  @@map("capa_actions")
+}
+
+/// One row per escalation event: the audit-grade history behind CapaAction.escalationLevel.
+model CapaEscalation {
+  id          String            @id @default(cuid())
+  capaId      String
+  level       Int
+  toUserId    String            @db.Uuid
+  trigger     EscalationTrigger
+  reason      String?           @db.Text
+  daysOverdue Int?
+  createdAt   DateTime          @default(now())
+
+  capa   CapaAction @relation(fields: [capaId], references: [id], onDelete: Cascade)
+  toUser User       @relation("EscalationTo", fields: [toUserId], references: [id], onDelete: Restrict)
+
+  @@index([capaId, createdAt])
+  @@index([toUserId])
+  @@map("capa_escalations")
+}
+
+/// Per-site override of the default escalation ladder (see DEFAULT_ESCALATION in code).
+model EscalationRule {
+  id               String   @id @default(cuid())
+  siteId           String
+  priority         Priority
+  level            Int      // 1..3
+  afterDaysOverdue Int
+  escalateToRole   Role
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, priority, level])
+  @@map("escalation_rules")
+}
+
+// ═════════════════════════════════════════════════════════════
+// MODULE 3: WASTE & ENVIRONMENTAL DISCHARGE
+// ═════════════════════════════════════════════════════════════
+
+model WasteManifest {
+  id                   String         @id @default(cuid())
+  manifestCode         String         @unique // "WM-2026-0001", server-generated
+  siteId               String
+  recordedById         String         @db.Uuid
+
+  wasteType            WasteType
+  wasteCode            String?        // e.g. European Waste Catalogue code
+  description          String
+  disposalMethod       DisposalMethod @default(LANDFILL)
+  estimatedWeightKg    Decimal?       @db.Decimal(12, 3)
+
+  transporterName      String
+  transporterLicenseNo String?
+  vehicleRegistration  String?
+  driverName           String?
+  destinationFacility  String
+
+  status               ManifestStatus @default(DISPATCHED)
+  statusNote           String?        @db.Text // reason for reject / cancel
+  dispatchedAt         DateTime
+  receivedAt           DateTime?
+  notes                String?        @db.Text
+  attachmentUrls       String[]
+
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  site       Site               @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  recordedBy User               @relation("ManifestRecorder", fields: [recordedById], references: [id], onDelete: Restrict)
+  ticket     WeighbridgeTicket?
+
+  @@index([siteId, status])
+  @@index([siteId, dispatchedAt])
+  @@index([siteId, wasteType])
+  @@map("waste_manifests")
+}
+
+/// Immutable once written. netWeightKg = gross - tare, computed server-side.
+model WeighbridgeTicket {
+  id                  String    @id @default(cuid())
+  manifestId          String    @unique // one ticket per manifest
+  siteId              String
+  operatorId          String    @db.Uuid
+  weighbridgeTicketNo String
+  wasteType           WasteType // copied from the manifest for analytics
+  grossWeightKg       Decimal   @db.Decimal(12, 3)
+  tareWeightKg        Decimal   @db.Decimal(12, 3)
+  netWeightKg         Decimal   @db.Decimal(12, 3)
+  countedToLandfill   Boolean
+  dischargeDate       DateTime
+  notes               String?   @db.Text
+  evidenceUrls        String[]  // http(s) references
+  createdAt           DateTime  @default(now())
+
+  manifest WasteManifest @relation(fields: [manifestId], references: [id], onDelete: Restrict)
+  site     Site          @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  operator User          @relation("TicketOperator", fields: [operatorId], references: [id], onDelete: Restrict)
+
+  @@unique([siteId, weighbridgeTicketNo])
+  @@index([siteId, dischargeDate])
+  @@index([siteId, wasteType, dischargeDate])
+  @@index([siteId, countedToLandfill, dischargeDate])
+  @@map("weighbridge_tickets")
+}
+
+/// Environmental sampling (effluent, emissions). Separate from weighbridge tickets.
+model DischargeLog {
+  id             String          @id @default(cuid())
+  siteId         String
+  requirementId  String?         // permit / limit source
+  sampledById    String          @db.Uuid
+
+  medium         DischargeMedium
+  outfallPoint   String          // e.g. "OUTFALL-02"
+  parameter      String          // e.g. "COD", "pH", "TSS"
+  value          Decimal         @db.Decimal(14, 4)
+  unit           String
+  limitValue     Decimal?        @db.Decimal(14, 4)
+  limitMin       Decimal?        @db.Decimal(14, 4)
+  isExceedance   Boolean         @default(false)
+  sampledAt      DateTime
+  labReference   String?
+  analysisMethod String?
+  notes          String?         @db.Text
+  createdAt      DateTime        @default(now())
+
+  site        Site              @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  requirement LegalRequirement? @relation(fields: [requirementId], references: [id], onDelete: SetNull)
+  sampledBy   User              @relation("DischargeSampler", fields: [sampledById], references: [id], onDelete: Restrict)
+
+  @@index([siteId, medium, sampledAt])
+  @@index([siteId, parameter, sampledAt])
+  @@index([isExceedance])
+  @@map("discharge_logs")
+}
+
+/// One row per site. Tons are Decimal(16,6) so kg-precision increments are exact.
+model LandfillCapacity {
+  id                String    @id @default(cuid())
+  siteId            String    @unique
+  totalCapacityTons Decimal   @db.Decimal(16, 6)
+  currentVolumeTons Decimal   @default(0) @db.Decimal(16, 6)
+  projectedFillDate DateTime?
+  lastSurveyedAt    DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@map("landfill_capacities")
+}
+
+// ═════════════════════════════════════════════════════════════
+// MODULE 4: DYNAMIC RISK ASSESSMENT (JSA / HIRA)
+// ═════════════════════════════════════════════════════════════
+
+model RiskAssessment {
+  id             String           @id @default(cuid())
+  referenceNo    String           // "RA-2026-0001", shared by every version
+  version        Int              @default(1)
+  parentId       String?          // the version this one revises
+  siteId         String
+  assessorId     String           @db.Uuid
+  approvedById   String?          @db.Uuid
+
+  title          String
+  type           AssessmentType   @default(HIRA)
+  status         AssessmentStatus @default(DRAFT)
+  activity       String
+  area           String?
+  scope          String?          @db.Text
+  teamMembers    String[]
+  assessedAt     DateTime         @default(now())
+  submittedAt    DateTime?
+  approvedAt     DateTime?
+  approvalNotes  String?          @db.Text
+  nextReviewDate DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  site      Site             @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  assessor  User             @relation("RiskAssessor", fields: [assessorId], references: [id], onDelete: Restrict)
+  approver  User?            @relation("RiskApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  parent    RiskAssessment?  @relation("RiskVersions", fields: [parentId], references: [id], onDelete: SetNull)
+  revisions RiskAssessment[] @relation("RiskVersions")
+  hazards   HazardItem[]
+
+  @@unique([referenceNo, version])
+  @@index([siteId, status])
+  @@index([nextReviewDate])
+  @@map("risk_assessments")
+}
+
+model HazardItem {
+  id               String  @id @default(cuid())
+  riskAssessmentId String
+  responsibleId    String? @db.Uuid
+  capaActionId     String? // reserved for the hazard-to-CAPA link
+  sortOrder        Int     @default(0)
+
+  taskStep  String? // JSA step description
+  hazard    String
+  consequence String
+  whoAtRisk String?
+
+  // Inherent risk (5x5 matrix; DB CHECK in prisma/constraints.sql)
+  initialLikelihood Int
+  initialSeverity   Int
+  initialScore      Int
+  initialLevel      RiskLevel
+
+  controlMeasures  String           @db.Text
+  controlHierarchy ControlHierarchy
+  requiredPpe      String[]
+
+  residualLikelihood Int?
+  residualSeverity   Int?
+  residualScore      Int?
+  residualLevel      RiskLevel?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  riskAssessment RiskAssessment @relation(fields: [riskAssessmentId], references: [id], onDelete: Cascade)
+  responsible    User?          @relation("HazardResponsible", fields: [responsibleId], references: [id], onDelete: SetNull)
+  capaAction     CapaAction?    @relation(fields: [capaActionId], references: [id], onDelete: SetNull)
+
+  @@index([riskAssessmentId, sortOrder])
+  @@index([initialLevel])
+  @@index([residualLevel])
+  @@map("hazard_items")
+}
+
+// ═════════════════════════════════════════════════════════════
+// MODULE 5: AUDITS, INSPECTIONS & NON-CONFORMANCES
+// ═════════════════════════════════════════════════════════════
+
+/// Org-wide templates. Immutable once created, so historical scores never change.
+model AuditChecklist {
+  id          String        @id @default(cuid())
+  title       String
+  standard    AuditStandard
+  description String        @db.Text
+  createdById String        @db.Uuid
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  createdBy   User                @relation("ChecklistCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  questions   ChecklistQuestion[]
+  inspections AuditInspection[]
+
+  @@index([standard])
+  @@map("audit_checklists")
+}
+
+model ChecklistQuestion {
+  id           String  @id @default(cuid())
+  checklistId  String
+  category     String
+  question     String  @db.Text
+  guidanceNote String? @db.Text
+  weight       Int     @default(1)
+  sortOrder    Int     @default(0)
+
+  checklist AuditChecklist     @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  responses InspectionResponse[]
+
+  @@index([checklistId, sortOrder])
+  @@map("checklist_questions")
+}
+
+model AuditInspection {
+  id              String           @id @default(cuid())
+  referenceNo     String           @unique // "INS-2026-0001"
+  siteId          String
+  checklistId     String
+  inspectorId     String           @db.Uuid
+  createdById     String           @db.Uuid
+  scheduledDate   DateTime         // date-only, stored as UTC midnight
+  startedAt       DateTime?
+  completedDate   DateTime?
+  scorePercentage Decimal?         @db.Decimal(5, 2)
+  status          InspectionStatus @default(SCHEDULED)
+  cancelReason    String?          @db.Text
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  site        Site                   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  checklist   AuditChecklist         @relation(fields: [checklistId], references: [id], onDelete: Restrict)
+  inspector   User                   @relation("InspectionInspector", fields: [inspectorId], references: [id], onDelete: Restrict)
+  createdBy   User                   @relation("InspectionCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  responses   InspectionResponse[]
+  ncrs        NonConformanceReport[]
+  capaActions CapaAction[]
+
+  @@index([siteId, status])
+  @@index([siteId, scheduledDate])
+  @@index([inspectorId, status])
+  @@map("audit_inspections")
+}
+
+model InspectionResponse {
+  id                 String           @id @default(cuid())
+  inspectionId       String
+  questionId         String
+  answeredById       String           @db.Uuid
+  result             InspectionResult
+  findingDescription String?          @db.Text
+  evidenceUrls       String[]
+  answeredAt         DateTime         @default(now())
+
+  inspection AuditInspection        @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  question   ChecklistQuestion      @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  answeredBy User                   @relation("ResponseAnswerer", fields: [answeredById], references: [id], onDelete: Restrict)
+  ncr        NonConformanceReport?
+
+  @@unique([inspectionId, questionId])
+  @@map("inspection_responses")
+}
+
+model NonConformanceReport {
+  id           String      @id @default(cuid())
+  referenceNo  String      @unique // "NCR-2026-0001"
+  siteId       String
+  inspectionId String
+  responseId   String      @unique // one NCR per finding
+  raisedById   String      @db.Uuid
+  severity     NcrSeverity
+  status       NcrStatus   @default(OPEN)
+  summary      String      @db.Text
+  capaTaskId   String?     // several NCRs may share one action
+  closureNotes String?     @db.Text
+  closedAt     DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  site       Site               @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  inspection AuditInspection    @relation(fields: [inspectionId], references: [id], onDelete: Restrict)
+  response   InspectionResponse @relation(fields: [responseId], references: [id], onDelete: Restrict)
+  raisedBy   User               @relation("NcrRaiser", fields: [raisedById], references: [id], onDelete: Restrict)
+  capa       CapaAction?        @relation(fields: [capaTaskId], references: [id], onDelete: SetNull)
+
+  @@index([siteId, status])
+  @@index([inspectionId])
+  @@index([capaTaskId])
+  @@map("non_conformance_reports")
+}
