@@ -9,7 +9,7 @@ Industrial HSE (health, safety, environment) platform for plant managers, enviro
 | # | Module | Scope | Status in this repo |
 |---|---|---|---|
 | 1 | Legal compliance matrix | Requirements, audits, gap analysis, filter bar, audit drawer | Added (stage 2) |
-| 2 | Incidents, RCA and CAPA | Incident register, 5-Whys, CAPA board, escalation sweep | To be added |
+| 2 | Incidents, RCA and CAPA | Incident register, 5-Whys, CAPA board, escalation sweep | Added (stage 3) |
 | 3 | Waste and discharge | Manifests, weighbridge tickets, landfill capacity | To be added |
 | 4 | Risk assessments | JSA/HIRA 5x5 matrix, versioning, print-to-PDF | To be added |
 | 5 | Audits and inspections | Checklists, execution drawer, NCRs linked to CAPA | To be added |
@@ -49,3 +49,7 @@ Shared code every module builds on: `src/lib/auth` (session, RBAC matrix, `autho
 ## Shared UI (stage 2)
 
 `src/components/ui`: `Field`/`SubmitButton`, `ActionPanel` (config-driven workflow forms), `UrlFilters` (URL-driven search and filters), `Drawer` (URL-driven right-hand drawer on native `<dialog>`), `Pagination`. The dashboard shell is `src/app/(dashboard)/layout.tsx`.
+
+## Scheduled jobs
+
+`GET /api/cron/capa-escalation` runs the CAPA escalation sweep (idempotent, safe to run concurrently). Call it daily with `Authorization: Bearer $CRON_SECRET` from Vercel Cron or Supabase `pg_cron` with `pg_net`.
