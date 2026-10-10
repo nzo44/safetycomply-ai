@@ -8,7 +8,7 @@ Industrial HSE (health, safety, environment) platform for plant managers, enviro
 
 | # | Module | Scope | Status in this repo |
 |---|---|---|---|
-| 1 | Legal compliance matrix | Requirements, audits, gap analysis, filter bar, audit drawer | To be added |
+| 1 | Legal compliance matrix | Requirements, audits, gap analysis, filter bar, audit drawer | Added (stage 2) |
 | 2 | Incidents, RCA and CAPA | Incident register, 5-Whys, CAPA board, escalation sweep | To be added |
 | 3 | Waste and discharge | Manifests, weighbridge tickets, landfill capacity | To be added |
 | 4 | Risk assessments | JSA/HIRA 5x5 matrix, versioning, print-to-PDF | To be added |
@@ -45,3 +45,7 @@ Shared code every module builds on: `src/lib/auth` (session, RBAC matrix, `autho
 - Status changes are guarded `updateMany` calls inside a transaction, and each one writes to the activity log.
 - Statuses such as "overdue" are derived from dates, never stored.
 - Evidence is stored as `http(s)` references only.
+
+## Shared UI (stage 2)
+
+`src/components/ui`: `Field`/`SubmitButton`, `ActionPanel` (config-driven workflow forms), `UrlFilters` (URL-driven search and filters), `Drawer` (URL-driven right-hand drawer on native `<dialog>`), `Pagination`. The dashboard shell is `src/app/(dashboard)/layout.tsx`.
