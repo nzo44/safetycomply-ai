@@ -10,7 +10,7 @@ Industrial HSE (health, safety, environment) platform for plant managers, enviro
 |---|---|---|---|
 | 1 | Legal compliance matrix | Requirements, audits, gap analysis, filter bar, audit drawer | Added (stage 2) |
 | 2 | Incidents, RCA and CAPA | Incident register, 5-Whys, CAPA board, escalation sweep | Added (stage 3) |
-| 3 | Waste and discharge | Manifests, weighbridge tickets, landfill capacity | To be added |
+| 3 | Waste and discharge | Manifests, weighbridge tickets, landfill capacity | Added (stage 4) |
 | 4 | Risk assessments | JSA/HIRA 5x5 matrix, versioning, print-to-PDF | To be added |
 | 5 | Audits and inspections | Checklists, execution drawer, NCRs linked to CAPA | To be added |
 | - | Shared | Supabase Storage signed URLs and toast notifications | Planned |
