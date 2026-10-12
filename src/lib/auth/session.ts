@@ -31,7 +31,7 @@ export const getAccessibleSites = cache(async (user: SessionUser) =>
       isActive: true,
       ...(user.role === 'ADMIN' ? {} : { id: { in: user.sites.map((s) => s.siteId) } }),
     },
-    select: { id: true, code: true, name: true, timezone: true },
+    select: { id: true, code: true, name: true, timezone: true, country: true },
     orderBy: { name: 'asc' },
   }),
 );

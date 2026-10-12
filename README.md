@@ -13,6 +13,7 @@ Industrial HSE (health, safety, environment) platform for plant managers, enviro
 | 3 | Waste and discharge | Manifests, weighbridge tickets, landfill capacity | Added (stage 4) |
 | 4 | Risk assessments | JSA/HIRA 5x5 matrix, versioning, print-to-PDF | Added (stage 5) |
 | 5 | Audits and inspections | Checklists, execution drawer, NCRs linked to CAPA | Added (stage 6) |
+| F | Global shell and executive dashboard | Dark sidebar with pending badge, cross-module KPIs, quick actions | Added (stage 7) |
 | - | Shared | Supabase Storage signed URLs and toast notifications | Planned (evidence is `http(s)` links until then) |
 
 ## Getting started
@@ -53,3 +54,7 @@ Shared code every module builds on: `src/lib/auth` (session, RBAC matrix, `autho
 ## Scheduled jobs
 
 `GET /api/cron/capa-escalation` runs the CAPA escalation sweep (idempotent, safe to run concurrently). Call it daily with `Authorization: Bearer $CRON_SECRET` from Vercel Cron or Supabase `pg_cron` with `pg_net`.
+
+## Routes
+
+`/legal` redirects to `/compliance` and `/risks` redirects to `/risk` (see `next.config.mjs`). The overview lives at `/` in `src/app/(dashboard)/page.tsx`.

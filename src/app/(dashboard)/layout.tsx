@@ -1,27 +1,41 @@
-import { AlertTriangle, ClipboardCheck, ClipboardList, Recycle, Scale } from 'lucide-react';
-import { NavLink } from '@/components/nav-link';
+import type { Role } from '@prisma/client';
+import { AppSidebar } from '@/components/layout/AppSidebar';
 import { getActiveSite, requireUser } from '@/lib/auth/session';
+import { getNavCounts } from '@/lib/data/dashboard';
+
+const ROLE_LABEL: Record<Role, string> = {
+  ADMIN: 'Administrator', HSE_MANAGER: 'HSE Manager', INSPECTOR: 'Inspector', AUDITOR: 'Auditor',
+};
+
+/** "DZ" -> "Algeria". Falls back to null for unknown codes so the badge degrades to "Ops Hub". */
+function regionName(code: string | null | undefined) {
+  if (!code) return null;
+  try {
+    return new Intl.DisplayNames(['en'], { type: 'region' }).of(code.toUpperCase()) ?? null;
+  } catch {
+    return null;
+  }
+}
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
   const site = await getActiveSite(user);
+  const counts = site ? await getNavCounts(site.id, user) : { incidentsPending: 0 };
+  const region = regionName(site?.country);
 
   return (
-    <div className="flex min-h-screen flex-col lg:flex-row print:block">
-      <aside className="border-b border-line lg:w-60 lg:shrink-0 lg:border-b-0 lg:border-r print:hidden">
-        <div className="p-4">
-          <p className="font-display text-xl font-semibold">SafetyComply AI</p>
-          <p className="mt-1 text-xs text-steel">{site ? site.name : 'No site assigned'}</p>
-        </div>
-        <nav aria-label="Modules" className="flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col">
-          <NavLink href="/compliance"><Scale size={16} aria-hidden /> Compliance</NavLink>
-          <NavLink href="/incidents"><AlertTriangle size={16} aria-hidden /> Incidents and CAPA</NavLink>
-          <NavLink href="/waste"><Recycle size={16} aria-hidden /> Waste and discharge</NavLink>
-          <NavLink href="/risk"><ClipboardCheck size={16} aria-hidden /> Risk assessment</NavLink>
-          <NavLink href="/audits"><ClipboardList size={16} aria-hidden /> Audits and inspections</NavLink>
-        </nav>
-      </aside>
-      <main className="min-w-0 flex-1 p-4 sm:p-8 print:p-0">{children}</main>
+    <div className="flex min-h-screen flex-col bg-canvas lg:h-screen lg:flex-row lg:overflow-hidden print:block print:h-auto">
+      <AppSidebar
+        context={region ? `${region} Ops Hub` : 'Ops Hub'}
+        siteName={site?.name ?? null}
+        siteCode={site?.code ?? null}
+        userName={user.fullName}
+        roleLabel={ROLE_LABEL[user.role]}
+        pendingIncidents={counts.incidentsPending}
+      />
+      <main className="min-w-0 flex-1 lg:overflow-y-auto print:overflow-visible">
+        <div className="mx-auto w-full max-w-7xl p-4 sm:p-6 lg:p-8 print:max-w-none print:p-0">{children}</div>
+      </main>
     </div>
   );
 }
