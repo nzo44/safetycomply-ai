@@ -873,6 +873,7 @@ model NonConformanceReport {
   severity     NcrSeverity
   status       NcrStatus   @default(OPEN)
   summary      String      @db.Text
+  containmentActions String? @db.Text // immediate containment taken on the spot
   capaTaskId   String?     // several NCRs may share one action
   closureNotes String?     @db.Text
   closedAt     DateTime?

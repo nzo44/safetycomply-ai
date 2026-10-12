@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { X } from 'lucide-react';
 
 /** URL params that open a drawer. Removing them closes it. */
-export const MODAL_PARAMS = ['new', 'discharge', 'hazard', 'execute', 'ncr'] as const;
+export const MODAL_PARAMS = ['new', 'discharge', 'hazard', 'execute', 'ncr', 'ncrq'] as const;
 
 export function useCloseDrawer() {
   const router = useRouter();

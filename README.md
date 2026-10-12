@@ -12,8 +12,8 @@ Industrial HSE (health, safety, environment) platform for plant managers, enviro
 | 2 | Incidents, RCA and CAPA | Incident register, 5-Whys, CAPA board, escalation sweep | Added (stage 3) |
 | 3 | Waste and discharge | Manifests, weighbridge tickets, landfill capacity | Added (stage 4) |
 | 4 | Risk assessments | JSA/HIRA 5x5 matrix, versioning, print-to-PDF | Added (stage 5) |
-| 5 | Audits and inspections | Checklists, execution drawer, NCRs linked to CAPA | To be added |
-| - | Shared | Supabase Storage signed URLs and toast notifications | Planned |
+| 5 | Audits and inspections | Checklists, execution drawer, NCRs linked to CAPA | Added (stage 6) |
+| - | Shared | Supabase Storage signed URLs and toast notifications | Planned (evidence is `http(s)` links until then) |
 
 ## Getting started
 
