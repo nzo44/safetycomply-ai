@@ -20,20 +20,25 @@ Industrial HSE (health, safety, environment) platform for plant managers, enviro
 
 ```bash
 npm install
-cp .env.example .env.local      # fill in your Supabase values
+cp .env.example .env            # fill in your Supabase values (Prisma reads .env, not .env.local)
 npx prisma validate
 npx prisma migrate dev --create-only --name init
 #   append prisma/constraints.sql to the generated migration.sql, then:
 npx prisma migrate dev
-#   run prisma/supabase-auth-trigger.sql once in the Supabase SQL editor
+#   then, in the Supabase SQL editor, run in this order:
+#     1. prisma/supabase-auth-trigger.sql   (before creating your first user)
+#     2. prisma/supabase-rls.sql            (closes the public REST API on every table)
 npm run dev
 ```
+
+Connection strings (Supabase, Connect): `DATABASE_URL` is the transaction pooler (port 6543, with `?pgbouncer=true`) and `DIRECT_URL` is the session pooler (port 5432). Percent-encode special characters in the password (`@` becomes `%40`). Stay on Prisma 6: the datasource block uses `url` and `directUrl`, which Prisma 7 no longer accepts.
 
 ## Database
 
 - `prisma/schema.prisma`: all models for Modules 1 to 5 (23 models, 27 enums).
 - `prisma/constraints.sql`: CHECK constraints and partial unique indexes Prisma can't express (weighbridge arithmetic, 5x5 risk scores, one approved risk-assessment version, CAPA origin).
 - `prisma/supabase-auth-trigger.sql`: copies new Supabase Auth users into `users`, plus bootstrap statements for a first site and admin.
+- `prisma/supabase-rls.sql`: enables row level security on every `public` table so the anon key cannot read or write them through Supabase's REST API.
 
 ## Foundation (stage 1)
 
