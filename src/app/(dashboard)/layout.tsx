@@ -1,6 +1,6 @@
 import type { Role } from '@prisma/client';
 import { AppSidebar } from '@/components/layout/AppSidebar';
-import { getActiveSite, requireUser } from '@/lib/auth/session';
+import { getAccessibleSites, getActiveSite, requireUser } from '@/lib/auth/session';
 import { getNavCounts } from '@/lib/data/dashboard';
 
 const ROLE_LABEL: Record<Role, string> = {
@@ -20,7 +20,10 @@ function regionName(code: string | null | undefined) {
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
   const site = await getActiveSite(user);
-  const counts = site ? await getNavCounts(site.id, user) : { incidentsPending: 0 };
+  const [counts, sites] = await Promise.all([
+    site ? getNavCounts(site.id, user) : Promise.resolve({ incidentsPending: 0 }),
+    getAccessibleSites(user),
+  ]);
   const region = regionName(site?.country);
 
   return (
@@ -32,6 +35,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
         userName={user.fullName}
         roleLabel={ROLE_LABEL[user.role]}
         pendingIncidents={counts.incidentsPending}
+        sites={sites}
+        activeSiteId={site?.id ?? null}
       />
       <main className="min-w-0 flex-1 lg:overflow-y-auto print:overflow-visible">
         <div className="mx-auto w-full max-w-7xl p-4 sm:p-6 lg:p-8 print:max-w-none print:p-0">{children}</div>

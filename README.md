@@ -58,3 +58,9 @@ Shared code every module builds on: `src/lib/auth` (session, RBAC matrix, `autho
 ## Routes
 
 `/legal` redirects to `/compliance` and `/risks` redirects to `/risk` (see `next.config.mjs`). The overview lives at `/` in `src/app/(dashboard)/page.tsx`.
+
+## Authentication
+
+Sign-in is by Supabase Auth: email and password, or a one-time email link (existing accounts only; the link flow never creates users). Accounts are created by an administrator in the Supabase dashboard, and `prisma/supabase-auth-trigger.sql` adds the matching `users` row.
+
+In Supabase, add `<NEXT_PUBLIC_SITE_URL>/callback` to Authentication, URL Configuration, Redirect URLs. A signed-in user with no active profile row sees an explanation on `/login` instead of a redirect loop. Users with several sites get a site switcher in the sidebar.

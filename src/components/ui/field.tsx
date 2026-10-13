@@ -18,7 +18,7 @@ export function Field({
   );
 }
 
-export function SubmitButton({ children }: { children: React.ReactNode }) {
+export function SubmitButton({ children, pendingLabel = 'Saving…' }: { children: React.ReactNode; pendingLabel?: string }) {
   const { pending } = useFormStatus();
   return (
     <button
@@ -26,7 +26,7 @@ export function SubmitButton({ children }: { children: React.ReactNode }) {
       disabled={pending}
       className="rounded bg-plant px-4 py-2 text-sm font-semibold text-white hover:bg-plant/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plant disabled:opacity-60"
     >
-      {pending ? 'Saving…' : children}
+      {pending ? pendingLabel : children}
     </button>
   );
 }

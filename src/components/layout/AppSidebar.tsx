@@ -4,9 +4,11 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  AlertTriangle, ClipboardCheck, ClipboardList, LayoutDashboard, Menu, Recycle, Scale, ShieldCheck, X,
+  AlertTriangle, ClipboardCheck, ClipboardList, LayoutDashboard, LogOut, Menu, Recycle, Scale, ShieldCheck, X,
   type LucideIcon,
 } from 'lucide-react';
+import { signOut } from '@/actions/auth/session';
+import { SiteSwitcher, type SiteOption } from './SiteSwitcher';
 
 interface NavItem {
   href: string;
@@ -34,6 +36,8 @@ export interface AppSidebarProps {
   userName: string;
   roleLabel: string;
   pendingIncidents: number;
+  sites: SiteOption[];
+  activeSiteId: string | null;
 }
 
 function Brand({ context }: { context: string }) {
@@ -96,14 +100,26 @@ function SidebarBody({
         </ul>
       </nav>
 
-      <div className="border-t border-slate-800 px-5 py-4 text-xs">
-        <p className="truncate font-medium text-slate-200">{props.userName}</p>
-        <p className="mt-0.5 text-slate-500">{props.roleLabel}</p>
-        {props.siteName && (
-          <p className="mt-2 truncate text-slate-400">
+      <div className="space-y-3 border-t border-slate-800 px-5 py-4 text-xs">
+        <div>
+          <p className="truncate font-medium text-slate-200">{props.userName}</p>
+          <p className="mt-0.5 text-slate-500">{props.roleLabel}</p>
+        </div>
+        {props.sites.length > 1 ? (
+          <SiteSwitcher sites={props.sites} activeId={props.activeSiteId} />
+        ) : props.siteName ? (
+          <p className="truncate text-slate-400">
             {props.siteName}{props.siteCode ? ` (${props.siteCode})` : ''}
           </p>
-        )}
+        ) : null}
+        <form action={signOut}>
+          <button
+            type="submit"
+            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-slate-400 hover:bg-slate-800 hover:text-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-400"
+          >
+            <LogOut size={14} aria-hidden /> Sign out
+          </button>
+        </form>
       </div>
     </div>
   );
