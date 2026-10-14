@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 import { authorize } from '@/lib/auth/guard';
 import { failure, fieldError, invalid, WorkflowError, type ActionResult } from '@/lib/action-result';
 import { logActivity } from '@/lib/activity';
+import { assertEvidenceForSite } from '@/lib/evidence-guard';
 import { requireSiteUser } from '@/lib/incidents/access';
 import { authorizeExecution, loadInspection } from '@/lib/audits/access';
 import { WORKABLE_STATUSES } from '@/lib/audits/meta';
@@ -66,6 +67,7 @@ export async function submitInspectionResponse(_prev: ActionResult | null, formD
 
     const ins = await loadInspection(d.inspectionId);
     const user = await authorizeExecution(ins);
+    assertEvidenceForSite(d.evidenceUrls, ins.siteId);
     if (!WORKABLE_STATUSES.includes(ins.status)) {
       throw new WorkflowError(ins.status === 'COMPLETED' ? 'This inspection is completed, so answers can no longer change.' : 'This inspection was cancelled.');
     }

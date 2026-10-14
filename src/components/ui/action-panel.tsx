@@ -5,6 +5,7 @@ import { useFormState, useFormStatus } from 'react-dom';
 import type { FormAction } from '@/lib/action-result';
 import type { Option } from '@/types/common';
 import { Field, inputCls, SubmitButton } from './field';
+import { useResultToast } from './toast';
 
 export interface FieldSpec {
   name: string;
@@ -46,6 +47,8 @@ export function ActionPanel({
   const uid = useId();
   const [open, setOpen] = useState(false);
   const [state, formAction] = useFormState(action, null);
+  // Success always toasts. Errors toast only for one-tap buttons, because open forms show them inline.
+  useResultToast(state, { errors: immediate });
   const err = (k: string) => (state && !state.ok ? state.fieldErrors?.[k]?.[0] : undefined);
   const btn = tone === 'danger'
     ? 'border-noncompliant text-noncompliant hover:bg-noncompliant/5'
@@ -56,13 +59,6 @@ export function ActionPanel({
   }, [state]);
 
   const hiddenInputs = Object.entries(hidden).map(([k, v]) => <input key={k} type="hidden" name={k} value={v} />);
-  const result = (
-    <>
-      {state?.ok && state.message && <p role="status" className="mt-1 text-xs font-medium text-compliant">{state.message}</p>}
-      {state && !state.ok && !open && <p role="alert" className="mt-1 text-xs font-medium text-noncompliant">{state.error}</p>}
-    </>
-  );
-
   if (immediate) {
     return (
       <div>
@@ -70,7 +66,6 @@ export function ActionPanel({
           {hiddenInputs}
           <OutlineSubmit className={btn}>{label}</OutlineSubmit>
         </form>
-        {result}
       </div>
     );
   }
@@ -83,8 +78,7 @@ export function ActionPanel({
             className={`rounded border px-3 py-1.5 text-xs font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-plant ${btn}`}>
             {label}
           </button>
-          {result}
-        </>
+          </>
       ) : (
         <form action={formAction} className="space-y-3 rounded border border-line bg-canvas p-3">
           <p className="text-sm font-semibold">{label}</p>

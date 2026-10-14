@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { DisposalMethod, WasteType } from '@prisma/client';
-import { blankToUndefined, httpUrlList, id, optText } from './helpers';
+import { blankToUndefined, evidenceRefList, id, optText } from './helpers';
 
 export const MAX_TRUCK_KG = 200_000; // 200 t gross: above this is almost certainly a typo
 
@@ -67,7 +67,7 @@ export const processDischargeSchema = z
     /** Defaults to the signed-in user. */
     operatorId: z.preprocess(blankToUndefined, z.string().uuid('Choose a valid operator').optional()),
     notes: optText(2000),
-    evidenceUrls: httpUrlList(10),
+    evidenceUrls: evidenceRefList(10),
   })
   .refine((d) => d.grossWeightKg > d.tareWeightKg, {
     path: ['grossWeightKg'],

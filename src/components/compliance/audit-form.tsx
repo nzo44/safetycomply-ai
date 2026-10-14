@@ -5,7 +5,9 @@ import { useFormState } from 'react-dom';
 import type { ComplianceStatus, Priority } from '@prisma/client';
 import { PRIORITY_LABEL, STATUS_LABEL, STATUS_ORDER } from '@/lib/compliance-meta';
 import type { FormAction } from '@/lib/action-result';
+import { EvidenceField } from '@/components/evidence/EvidenceField';
 import { Field, inputCls, SubmitButton } from '@/components/ui/field';
+import { useResultToast } from '@/components/ui/toast';
 
 export interface AuditFormProps {
   requirementId: string;
@@ -16,6 +18,7 @@ export interface AuditFormProps {
 
 export function AuditForm({ requirementId, action, onSuccess, onCancel }: AuditFormProps) {
   const [state, formAction] = useFormState(action, null);
+  useResultToast(state);
   const [status, setStatus] = useState<ComplianceStatus>('COMPLIANT');
   const formRef = useRef<HTMLFormElement>(null);
   const hasGap = status === 'NON_COMPLIANT' || status === 'PARTIALLY_COMPLIANT';
@@ -32,7 +35,6 @@ export function AuditForm({ requirementId, action, onSuccess, onCancel }: AuditF
     <form ref={formRef} action={formAction} className="space-y-4">
       <input type="hidden" name="requirementId" value={requirementId} />
 
-      {state?.ok && <p role="status" className="text-sm font-medium text-compliant">{state.message}</p>}
       {state && !state.ok && <p role="alert" className="text-sm font-medium text-noncompliant">{state.error}</p>}
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -53,10 +55,8 @@ export function AuditForm({ requirementId, action, onSuccess, onCancel }: AuditF
         <textarea id="findings" name="findings" rows={4} className={inputCls} />
       </Field>
 
-      <Field label="Evidence links" name="evidenceUrls" error={err('evidenceUrls')}
-        hint="Optional. One https link per line, up to 10. File upload arrives with the Storage step.">
-        <textarea id="evidenceUrls" name="evidenceUrls" rows={3} placeholder="https://…" className={inputCls} />
-      </Field>
+      <EvidenceField name="evidenceUrls" label="Evidence" error={err('evidenceUrls')}
+        hint="Optional. Up to 10 files or links. Files are stored privately and open only for people with access to this site." />
 
       {hasGap && (
         <div className="space-y-4 rounded border border-partial/50 bg-partial/5 p-4">

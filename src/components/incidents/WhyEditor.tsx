@@ -5,6 +5,7 @@ import { useFormState, useFormStatus } from 'react-dom';
 import { Minus, Plus } from 'lucide-react';
 import { saveRcaDraft, submitRca } from '@/actions/incidents/rca';
 import { Field, inputCls } from '@/components/ui/field';
+import { useResultToast } from '@/components/ui/toast';
 import type { FormAction } from '@/lib/action-result';
 import { MAX_WHYS, MIN_WHYS_TO_SUBMIT } from '@/lib/incidents/rca-limits';
 import { ROOT_CAUSE_LABEL, toOptions } from '@/lib/incidents-meta';
@@ -41,6 +42,7 @@ export interface WhyEditorProps {
 
 export function WhyEditor({ incidentId, defaults }: WhyEditorProps) {
   const [state, formAction] = useFormState(dispatch, null);
+  useResultToast(state);
   const intent = useRef<HTMLInputElement>(null);
   const [answers, setAnswers] = useState<string[]>(() => {
     const a = [...defaults.answers];
@@ -68,7 +70,6 @@ export function WhyEditor({ incidentId, defaults }: WhyEditorProps) {
       <input type="hidden" name="whyChain" value={JSON.stringify(chain)} />
       <input ref={intent} type="hidden" name="intent" defaultValue="draft" />
 
-      {state?.ok && <p role="status" className="text-sm font-medium text-compliant">{state.message}</p>}
       {state && !state.ok && <p role="alert" className="text-sm font-medium text-noncompliant">{state.error}</p>}
 
       <Field label="Problem statement" name="problemStatement" error={err('problemStatement')}>

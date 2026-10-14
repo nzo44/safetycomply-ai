@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { AuditStandard, CapaType, InspectionResult, NcrSeverity } from '@prisma/client';
 import { DAY_MS, startOfTodayUtc } from '@/lib/utils';
-import { blankToUndefined, dueDateField, httpUrlList, id, optId, optText, uuid } from './helpers';
+import { blankToUndefined, dueDateField, evidenceRefList, id, optId, optText, uuid } from './helpers';
 
 /* ───────── Checklist template ───────── */
 
@@ -58,7 +58,7 @@ export const responseSchema = z
     questionId: id(),
     result: z.nativeEnum(InspectionResult, { errorMap: () => ({ message: 'Choose pass, fail or N/A' }) }),
     findingDescription: optText(2000),
-    evidenceUrls: httpUrlList(5),
+    evidenceUrls: evidenceRefList(5),
   })
   .superRefine((d, ctx) => {
     if (d.result === 'NON_COMPLIANT' && (!d.findingDescription || d.findingDescription.length < 10)) {

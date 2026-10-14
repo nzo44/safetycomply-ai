@@ -4,6 +4,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { CATEGORY_LABEL, PRIORITY_LABEL } from '@/lib/compliance-meta';
+import { evidenceLabel, parseStorageRef } from '@/lib/evidence';
 
 const CATEGORY_ICON: Record<RequirementCategory, LucideIcon> = {
   AIR_EMISSIONS: Wind,
@@ -45,6 +46,10 @@ export function RiskChip({ level }: { level: Priority | null }) {
 
 /** Returns a safe, display-ready description of an evidence reference. */
 function describeEvidence(ref: string): { label: string; href: string | null; title: string } {
+  if (parseStorageRef(ref)) {
+    // Uploaded file: the page never holds a file URL. The route checks access and signs a 60-second link on click.
+    return { label: evidenceLabel(ref), href: `/api/evidence?ref=${encodeURIComponent(ref)}`, title: evidenceLabel(ref) };
+  }
   try {
     const u = new URL(ref);
     if (u.protocol === 'http:' || u.protocol === 'https:') {

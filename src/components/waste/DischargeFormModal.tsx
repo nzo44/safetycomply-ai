@@ -5,6 +5,7 @@ import { useFormState } from 'react-dom';
 import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { processDischarge } from '@/actions/waste/discharge';
 import { Drawer, useCloseDrawer } from '@/components/ui/drawer';
+import { EvidenceField } from '@/components/evidence/EvidenceField';
 import { Field, inputCls, SubmitButton } from '@/components/ui/field';
 import type { DischargeTarget } from '@/lib/data/waste';
 import { fmtKg, fmtTons } from '@/lib/utils';
@@ -143,10 +144,8 @@ function DischargeForm({ manifest, landfill, nowLocal }: DischargeFormModalProps
         <input id="dischargeDate" name="dischargeDate" type="datetime-local" required defaultValue={nowLocal} max={nowLocal} className={inputCls} />
       </Field>
 
-      <Field label="Ticket evidence links" name="evidenceUrls" error={err('evidenceUrls')}
-        hint="Optional. One http(s) link per line, up to 10: the scanned ticket, photos of the load.">
-        <textarea id="evidenceUrls" name="evidenceUrls" rows={2} placeholder="https://…" className={inputCls} />
-      </Field>
+      <EvidenceField name="evidenceUrls" label="Ticket evidence" error={err('evidenceUrls')}
+        hint="Optional. The scanned weighbridge ticket and photos of the load." />
 
       <Field label="Notes" name="notes" error={err('notes')}>
         <textarea id="notes" name="notes" rows={2} className={inputCls} />

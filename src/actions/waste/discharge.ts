@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 import { authorize } from '@/lib/auth/guard';
 import { failure, fieldError, invalid, WorkflowError, type ActionResult } from '@/lib/action-result';
 import { logActivity } from '@/lib/activity';
+import { assertEvidenceForSite } from '@/lib/evidence-guard';
 import { requireSiteUser } from '@/lib/incidents/access';
 import { resolveSiteTime } from '@/lib/site-time';
 import {
@@ -34,6 +35,7 @@ export async function processDischarge(_prev: ActionResult | null, formData: For
     if (!manifest) throw new WorkflowError('This manifest no longer exists.');
     const { user, siteId } = await authorize('waste:weigh', manifest.siteId);
 
+    assertEvidenceForSite(d.evidenceUrls, siteId);
     if (manifest.status === 'DISCHARGED') throw new WorkflowError('This manifest has already been discharged.');
     if (!PROCESSABLE_STATUSES.includes(manifest.status)) {
       throw new WorkflowError(`A ${manifest.status.toLowerCase()} manifest cannot be weighed in.`);

@@ -14,7 +14,7 @@ Industrial HSE (health, safety, environment) platform for plant managers, enviro
 | 4 | Risk assessments | JSA/HIRA 5x5 matrix, versioning, print-to-PDF | Added (stage 5) |
 | 5 | Audits and inspections | Checklists, execution drawer, NCRs linked to CAPA | Added (stage 6) |
 | F | Global shell and executive dashboard | Dark sidebar with pending badge, cross-module KPIs, quick actions | Added (stage 7) |
-| - | Shared | Supabase Storage signed URLs and toast notifications | Planned (evidence is `http(s)` links until then) |
+| - | Shared | Supabase Storage signed URLs and toast notifications | Added (stage 9) |
 
 ## Getting started
 
@@ -28,6 +28,7 @@ npx prisma migrate dev
 #   then, in the Supabase SQL editor, run in this order:
 #     1. prisma/supabase-auth-trigger.sql   (before creating your first user)
 #     2. prisma/supabase-rls.sql            (closes the public REST API on every table)
+#     3. prisma/supabase-storage.sql        (private bucket for evidence files)
 npm run dev
 ```
 
@@ -38,6 +39,7 @@ Connection strings (Supabase, Connect): `DATABASE_URL` is the transaction pooler
 - `prisma/schema.prisma`: all models for Modules 1 to 5 (23 models, 27 enums).
 - `prisma/constraints.sql`: CHECK constraints and partial unique indexes Prisma can't express (weighbridge arithmetic, 5x5 risk scores, one approved risk-assessment version, CAPA origin).
 - `prisma/supabase-auth-trigger.sql`: copies new Supabase Auth users into `users`, plus bootstrap statements for a first site and admin.
+- `prisma/supabase-storage.sql`: creates the private `evidence` bucket (10 MB, PDF, images, text, CSV, Word, Excel).
 - `prisma/supabase-rls.sql`: enables row level security on every `public` table so the anon key cannot read or write them through Supabase's REST API.
 
 ## Foundation (stage 1)
@@ -69,3 +71,9 @@ Shared code every module builds on: `src/lib/auth` (session, RBAC matrix, `autho
 Sign-in is by Supabase Auth: email and password, or a one-time email link (existing accounts only; the link flow never creates users). Accounts are created by an administrator in the Supabase dashboard, and `prisma/supabase-auth-trigger.sql` adds the matching `users` row.
 
 In Supabase, add `<NEXT_PUBLIC_SITE_URL>/callback` to Authentication, URL Configuration, Redirect URLs. A signed-in user with no active profile row sees an explanation on `/login` instead of a redirect loop. Users with several sites get a site switcher in the sidebar.
+
+## Evidence files and notifications
+
+Evidence can be uploaded files or `http(s)` links. Files go to a private Supabase bucket: a Server Action checks the user and the file, returns a one-time signed upload token, and the browser sends the file straight to storage. Records store a reference like `evidence/<siteId>/<uuid>-<name>`. Pages never contain file URLs: `/api/evidence?ref=...` checks site access on every click and redirects to a signed URL that expires after 60 seconds. This needs `SUPABASE_SERVICE_ROLE_KEY` (server-only) and `prisma/supabase-storage.sql`.
+
+Files uploaded in a form that is then abandoned stay in the bucket (a periodic cleanup job is not built yet). Toasts come from `ToastProvider` in the dashboard layout: `useToast()` for direct messages and `useResultToast(state)` for Server Action results.

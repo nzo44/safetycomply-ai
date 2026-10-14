@@ -1,5 +1,6 @@
 import type { Role } from '@prisma/client';
 import { AppSidebar } from '@/components/layout/AppSidebar';
+import { ToastProvider } from '@/components/ui/toast';
 import { getAccessibleSites, getActiveSite, requireUser } from '@/lib/auth/session';
 import { getNavCounts } from '@/lib/data/dashboard';
 
@@ -27,20 +28,22 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const region = regionName(site?.country);
 
   return (
-    <div className="flex min-h-screen flex-col bg-canvas lg:h-screen lg:flex-row lg:overflow-hidden print:block print:h-auto">
-      <AppSidebar
-        context={region ? `${region} Ops Hub` : 'Ops Hub'}
-        siteName={site?.name ?? null}
-        siteCode={site?.code ?? null}
-        userName={user.fullName}
-        roleLabel={ROLE_LABEL[user.role]}
-        pendingIncidents={counts.incidentsPending}
-        sites={sites}
-        activeSiteId={site?.id ?? null}
-      />
-      <main className="min-w-0 flex-1 lg:overflow-y-auto print:overflow-visible">
-        <div className="mx-auto w-full max-w-7xl p-4 sm:p-6 lg:p-8 print:max-w-none print:p-0">{children}</div>
-      </main>
-    </div>
+    <ToastProvider>
+      <div className="flex min-h-screen flex-col bg-canvas lg:h-screen lg:flex-row lg:overflow-hidden print:block print:h-auto">
+        <AppSidebar
+          context={region ? `${region} Ops Hub` : 'Ops Hub'}
+          siteName={site?.name ?? null}
+          siteCode={site?.code ?? null}
+          userName={user.fullName}
+          roleLabel={ROLE_LABEL[user.role]}
+          pendingIncidents={counts.incidentsPending}
+          sites={sites}
+          activeSiteId={site?.id ?? null}
+        />
+        <main className="min-w-0 flex-1 lg:overflow-y-auto print:overflow-visible">
+          <div className="mx-auto w-full max-w-7xl p-4 sm:p-6 lg:p-8 print:max-w-none print:p-0">{children}</div>
+        </main>
+      </div>
+    </ToastProvider>
   );
 }

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isEvidenceRef } from '@/lib/evidence';
 import { DAY_MS, startOfTodayUtc } from '@/lib/utils';
 
 export const blankToUndefined = (v: unknown) => (typeof v === 'string' && v.trim() === '' ? undefined : v);
@@ -40,5 +41,15 @@ export const httpUrlList = (max = 10) =>
         z.string().max(2000).refine((u) => /^https?:\/\/\S+$/i.test(u), 'Each link must start with http:// or https://'),
       )
       .max(max, `Attach ${max} links or fewer`)
+      .default([]),
+  );
+
+/** Newline-separated evidence: uploaded-file references ("evidence/<site>/<file>") or http(s) links. */
+export const evidenceRefList = (max = 10) =>
+  z.preprocess(
+    (v) => (typeof v === 'string' ? v.split(/\r?\n/).map((s) => s.trim()).filter(Boolean) : v),
+    z
+      .array(z.string().max(2000).refine(isEvidenceRef, 'Each item must be an uploaded file or an http(s) link'))
+      .max(max, `Attach ${max} items or fewer`)
       .default([]),
   );

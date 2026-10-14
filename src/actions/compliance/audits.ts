@@ -6,6 +6,7 @@ import { authorize } from '@/lib/auth/guard';
 import { failure, invalid, type ActionResult } from '@/lib/action-result';
 import { auditSchema } from '@/lib/validations/compliance';
 import { CAPA_DUE_DAYS } from '@/lib/compliance-meta';
+import { assertEvidenceForSite } from '@/lib/evidence-guard';
 import { nextCapaReference } from '@/lib/reference';
 import { addDays } from '@/lib/utils';
 
@@ -28,6 +29,7 @@ export async function recordAudit(_prev: ActionResult | null, formData: FormData
     if (!requirement || !requirement.isActive) return { ok: false, error: 'This requirement no longer exists.' };
 
     const { user, siteId } = await authorize('audit:write', requirement.siteId);
+    assertEvidenceForSite(d.evidenceUrls, siteId);
     const hasGap = d.status === 'NON_COMPLIANT' || d.status === 'PARTIALLY_COMPLIANT';
 
     await prisma.$transaction(async (tx) => {

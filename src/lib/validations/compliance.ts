@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ComplianceStatus, Priority, RequirementCategory } from '@prisma/client';
-import { blankToUndefined, httpUrlList, optDate, optText } from './helpers';
+import { blankToUndefined, evidenceRefList, optDate, optText } from './helpers';
 
 export const requirementSchema = z.object({
   title: z.string().trim().min(3, 'Enter a title of at least 3 characters').max(200),
@@ -32,7 +32,7 @@ export const auditSchema = z
       .date({ errorMap: () => ({ message: 'Enter the audit date' }) })
       .refine((d) => d.getTime() <= Date.now() + 86_400_000, 'The audit date cannot be in the future'),
     findings: optText(5000),
-    evidenceUrls: httpUrlList(10),
+    evidenceUrls: evidenceRefList(10),
     gapDescription: optText(5000),
     gapSeverity: z.preprocess(blankToUndefined, z.nativeEnum(Priority).optional()),
     nextAuditDue: optDate,

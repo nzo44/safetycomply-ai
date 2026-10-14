@@ -6,6 +6,7 @@ import type { InspectionResult } from '@prisma/client';
 import { Check, CheckCircle2, Loader2, Minus, X, type LucideIcon } from 'lucide-react';
 import { completeInspection, submitInspectionResponse } from '@/actions/audits/inspections';
 import { Drawer, useCloseDrawer } from '@/components/ui/drawer';
+import { EvidenceField } from '@/components/evidence/EvidenceField';
 import { inputCls } from '@/components/ui/field';
 import { WORKABLE_STATUSES } from '@/lib/audits/meta';
 import { computeScore } from '@/lib/audits/score';
@@ -50,8 +51,7 @@ function QuestionRow({
       <label htmlFor={`${q.id}-finding`} className="block text-xs font-medium">{failing ? 'Finding (required)' : 'Note'}</label>
       <textarea id={`${q.id}-finding`} rows={3} value={a.finding} onChange={(e) => onText('finding', e.target.value)} className={inputCls}
         placeholder={failing ? 'What was observed, where, and what should have been in place' : ''} />
-      <label htmlFor={`${q.id}-evidence`} className="block text-xs font-medium">Evidence links (one https link per line)</label>
-      <textarea id={`${q.id}-evidence`} rows={2} value={a.evidence} onChange={(e) => onText('evidence', e.target.value)} className={inputCls} placeholder="https://…" />
+      <EvidenceField label="Evidence" value={a.evidence} onChange={(v) => onText('evidence', v)} max={5} />
       <button type="button" onClick={onSaveText} disabled={!canSave}
         className="min-h-11 rounded border border-plant px-4 text-sm font-semibold text-plant hover:bg-plant/5 disabled:opacity-50">
         {failing ? 'Save finding' : 'Save note'}
