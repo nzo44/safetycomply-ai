@@ -25,6 +25,7 @@ npx prisma validate
 npx prisma migrate dev --create-only --name init
 #   append prisma/constraints.sql to the generated migration.sql, then:
 npx prisma migrate dev
+#   OR skip Prisma Migrate: paste prisma/supabase-tables.sql into the Supabase SQL editor (empty database only)
 #   then, in the Supabase SQL editor, run in this order:
 #     1. prisma/supabase-auth-trigger.sql   (before creating your first user)
 #     2. prisma/supabase-rls.sql            (closes the public REST API on every table)
@@ -37,6 +38,7 @@ Connection strings (Supabase, Connect): `DATABASE_URL` is the transaction pooler
 ## Database
 
 - `prisma/schema.prisma`: all models for Modules 1 to 5 (23 models, 27 enums).
+- `prisma/supabase-tables.sql`: all enums, tables, indexes, foreign keys and the extra constraints in one transaction, for the Supabase SQL editor. Generated from the schema and tested on a real Postgres engine; to use Prisma Migrate afterwards, put it in `prisma/migrations/0_init/migration.sql` and run `npx prisma migrate resolve --applied 0_init`.
 - `prisma/constraints.sql`: CHECK constraints and partial unique indexes Prisma can't express (weighbridge arithmetic, 5x5 risk scores, one approved risk-assessment version, CAPA origin).
 - `prisma/supabase-auth-trigger.sql`: copies new Supabase Auth users into `users`, plus bootstrap statements for a first site and admin.
 - `prisma/supabase-storage.sql`: creates the private `evidence` bucket (10 MB, PDF, images, text, CSV, Word, Excel).
