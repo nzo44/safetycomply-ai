@@ -12,17 +12,17 @@ import { INCIDENT_STATUS_LABEL, INCIDENT_TYPE_LABEL, SEVERITY_LABEL } from '@/li
 import { LEVEL_META } from '@/lib/risk/matrix';
 import { ASSESSMENT_STATUS_LABEL, ASSESSMENT_TYPE_LABEL } from '@/lib/risk/workflow';
 import { MANIFEST_STATUS_LABEL, WASTE_TYPE_LABEL } from '@/lib/waste/meta';
-import { humanize, toCsv, type Column } from './csv';
+import { humanize, toTable, type Column, type Table } from './csv';
 
 type Ctx = { siteId: string; viewerId: string; sp: SearchParams };
-export type ExportDef = { permission: Permission; build: (ctx: Ctx) => Promise<string> };
+export type ExportDef = { permission: Permission; build: (ctx: Ctx) => Promise<Table> };
 
 /** Hard stops so one click can never pull an unbounded table. */
 const MAX_ROWS = 5000;
 const MAX_PAGES = 50;
 
 function define<T>(permission: Permission, load: (ctx: Ctx) => Promise<T[]>, columns: Column<T>[]): ExportDef {
-  return { permission, build: async (ctx) => toCsv(columns, await load(ctx)) };
+  return { permission, build: async (ctx) => toTable(columns, await load(ctx)) };
 }
 
 const label = <K extends string>(map: Record<K, string>, k: K | null | undefined) => (k ? (map[k] ?? humanize(k)) : '');

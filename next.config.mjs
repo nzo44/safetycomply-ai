@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Loaded from node_modules at runtime instead of being bundled (large, Node-only).
+  experimental: { serverComponentsExternalPackages: ['exceljs'] },
   async redirects() {
     // Spec-style URLs resolve to the routes that exist under src/app/(dashboard)/.
     return [

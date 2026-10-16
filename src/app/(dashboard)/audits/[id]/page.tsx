@@ -71,6 +71,7 @@ export default async function InspectionPage({ params, searchParams }: { params:
         <div className="flex flex-wrap items-center gap-3">
           <InspectionStatusBadge status={a.status} overdue={a.overdue} />
           <StandardTag standard={a.standard} />
+          <Link href={`${base}/report`} className="text-sm font-medium underline">Report (print or PDF)</Link>
         </div>
         <p className="max-w-prose text-sm text-steel">{a.checklistDescription}</p>
       </header>
