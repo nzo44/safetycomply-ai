@@ -31,6 +31,7 @@ npx prisma migrate dev
 #     2. prisma/supabase-rls.sql            (closes the public REST API on every table)
 #     3. prisma/supabase-storage.sql        (private bucket for evidence files)
 npm run dev
+npm test                       # unit tests (Vitest): CSV, permissions, workflows, risk matrix, security guards
 ```
 
 Connection strings (Supabase, Connect): `DATABASE_URL` is the transaction pooler (port 6543, with `?pgbouncer=true`) and `DIRECT_URL` is the session pooler (port 5432). Percent-encode special characters in the password (`@` becomes `%40`). Stay on Prisma 6: the datasource block uses `url` and `directUrl`, which Prisma 7 no longer accepts.
