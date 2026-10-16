@@ -11,6 +11,7 @@ import {
 import { fmtDateTime } from '@/lib/utils';
 import { IncidentStatusBadge, SeverityBadge } from '@/components/incidents/badges';
 import { UrlFilters, type FilterField } from '@/components/ui/url-filters';
+import { ExportLink } from '@/components/ui/export-link';
 
 const FIELDS: FilterField[] = [
   { kind: 'search', key: 'q', label: 'Search', placeholder: 'Reference, title or location' },
@@ -39,7 +40,8 @@ export default async function IncidentsPage({ searchParams }: { searchParams: Se
           <h1 className="font-display text-3xl font-semibold">Incidents and corrective actions</h1>
           <p className="mt-1 text-sm text-steel">{site.name} ({site.code})</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
+          <ExportLink register="incidents" searchParams={searchParams} />
           <Link href="/incidents/capa" className="inline-flex items-center gap-2 rounded border border-line bg-white px-4 py-2 text-sm font-semibold hover:bg-canvas">
             <ListChecks size={16} aria-hidden /> Action board
           </Link>

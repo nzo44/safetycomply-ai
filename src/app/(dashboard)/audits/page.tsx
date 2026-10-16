@@ -8,6 +8,7 @@ import { InspectionTable } from '@/components/audits/InspectionTable';
 import { ActionPanel } from '@/components/ui/action-panel';
 import { Pagination } from '@/components/ui/pagination';
 import { UrlFilters, type FilterField } from '@/components/ui/url-filters';
+import { ExportLink } from '@/components/ui/export-link';
 import { can } from '@/lib/auth/rbac';
 import { getActiveSite, requireUser } from '@/lib/auth/session';
 import { INSPECTION_FILTER_LABEL, STANDARD_LABEL } from '@/lib/audits/meta';
@@ -67,6 +68,7 @@ export default async function AuditsPage({ searchParams }: { searchParams: Searc
           <p className="mt-1 text-sm text-steel">{site.name} ({site.code})</p>
         </div>
         <div className="flex flex-wrap items-start gap-3">
+          <ExportLink register={view === 'ncrs' ? 'ncrs' : 'inspections'} searchParams={searchParams} />
           {isManager && (
             <ActionPanel action={scheduleInspection} label="Schedule inspection" submitLabel="Schedule" hidden={{ siteId: site.id }}
               intro={checklists.length === 0 ? 'Create a checklist first. Inspections are run from a checklist.' : undefined}

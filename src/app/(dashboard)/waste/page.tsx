@@ -4,6 +4,7 @@ import { updateLandfillCapacity } from '@/actions/waste/capacity';
 import { ActionPanel } from '@/components/ui/action-panel';
 import { Pagination } from '@/components/ui/pagination';
 import { UrlFilters, type FilterField } from '@/components/ui/url-filters';
+import { ExportLink } from '@/components/ui/export-link';
 import { DischargeFormModal } from '@/components/waste/DischargeFormModal';
 import { LandfillCapacityGauge } from '@/components/waste/LandfillCapacityGauge';
 import { WasteManifestModal } from '@/components/waste/WasteManifestModal';
@@ -78,12 +79,15 @@ export default async function WastePage({ searchParams }: { searchParams: Search
           <h1 className="font-display text-3xl font-semibold">Waste and discharge</h1>
           <p className="mt-1 text-sm text-steel">{site.name} ({site.code})</p>
         </div>
+        <div className="flex flex-wrap items-center gap-3">
+        <ExportLink register="waste" searchParams={searchParams} />
         {canLog && (
           <Link href={withParams(searchParams, { new: '1', discharge: undefined })} scroll={false}
             className="inline-flex items-center gap-2 rounded bg-plant px-4 py-2 text-sm font-semibold text-white hover:bg-plant/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plant">
             <Truck size={16} aria-hidden /> Log shipment
           </Link>
         )}
+        </div>
       </header>
 
       <section aria-label="Waste summary" className="grid gap-4 lg:grid-cols-[1fr_380px]">

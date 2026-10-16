@@ -3,6 +3,7 @@ import { createAssessment } from '@/actions/risk/assessments';
 import { AssessmentStatusBadge, ReviewOverdueTag, RiskLevelChip } from '@/components/risk/badges';
 import { ActionPanel } from '@/components/ui/action-panel';
 import { UrlFilters, type FilterField } from '@/components/ui/url-filters';
+import { ExportLink } from '@/components/ui/export-link';
 import { can } from '@/lib/auth/rbac';
 import { getActiveSite, requireUser } from '@/lib/auth/session';
 import type { SearchParams } from '@/lib/data/params';
@@ -39,6 +40,8 @@ export default async function RiskPage({ searchParams }: { searchParams: SearchP
           <h1 className="font-display text-3xl font-semibold">Risk assessments</h1>
           <p className="mt-1 text-sm text-steel">{site.name} ({site.code})</p>
         </div>
+        <div className="flex flex-wrap items-start gap-3">
+        <ExportLink register="risk" searchParams={searchParams} />
         {can(user.role, 'risk:write') && (
           <ActionPanel action={createAssessment} label="New assessment" submitLabel="Create assessment"
             intro="Start with the task or process. You add hazards and rate the risk on the next screen."
@@ -52,6 +55,7 @@ export default async function RiskPage({ searchParams }: { searchParams: SearchP
               { name: 'teamMembers', label: 'Assessment team', kind: 'textarea', hint: 'One name per line.' },
             ]} />
         )}
+        </div>
       </header>
 
       <dl className="grid grid-cols-2 gap-px overflow-hidden rounded border border-line bg-line sm:grid-cols-4">

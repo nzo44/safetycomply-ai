@@ -5,6 +5,7 @@ import { getActiveSite, requireUser } from '@/lib/auth/session';
 import { getComplianceStats, getMatrix, parseFilters, toMatrixRow } from '@/lib/data/compliance';
 import type { SearchParams } from '@/lib/data/params';
 import { StatusBar } from '@/components/compliance/status-bar';
+import { ExportLink } from '@/components/ui/export-link';
 import { CategoryChart } from '@/components/compliance/category-chart';
 import { ComplianceFilterBar } from '@/components/compliance/ComplianceFilterBar';
 import { ComplianceWorkspace } from '@/components/compliance/ComplianceWorkspace';
@@ -28,11 +29,14 @@ export default async function CompliancePage({ searchParams }: { searchParams: S
           <h1 className="font-display text-3xl font-semibold">Legal compliance matrix</h1>
           <p className="mt-1 text-sm text-steel">{site.name} ({site.code})</p>
         </div>
+        <div className="flex flex-wrap items-center gap-3">
+        <ExportLink register="compliance" searchParams={searchParams} />
         {can(user.role, 'requirement:write') && (
           <Link href="/compliance/new" className="inline-flex items-center gap-2 rounded bg-plant px-4 py-2 text-sm font-semibold text-white hover:bg-plant/90">
             <Plus size={16} aria-hidden /> Add requirement
           </Link>
         )}
+        </div>
       </header>
 
       <section aria-label="Compliance summary" className="grid gap-6 rounded border border-line bg-white p-6 lg:grid-cols-[200px_1fr]">

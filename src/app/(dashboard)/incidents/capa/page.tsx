@@ -3,6 +3,7 @@ import type { CapaStatus } from '@prisma/client';
 import { CapaCard } from '@/components/incidents/CapaCard';
 import { CapaProvider } from '@/components/incidents/CapaActions';
 import { UrlFilters, type FilterField } from '@/components/ui/url-filters';
+import { ExportLink } from '@/components/ui/export-link';
 import { PRIORITY_LABEL } from '@/lib/compliance-meta';
 import { can } from '@/lib/auth/rbac';
 import { getActiveSite, requireUser } from '@/lib/auth/session';
@@ -51,6 +52,7 @@ export default async function CapaBoardPage({ searchParams }: { searchParams: Se
           <div><dt className="text-steel">Overdue</dt><dd className={`font-display text-2xl font-semibold ${stats.overdue ? 'text-noncompliant' : ''}`}>{stats.overdue}</dd></div>
           <div><dt className="text-steel">Escalated</dt><dd className="font-display text-2xl font-semibold">{stats.escalated}</dd></div>
         </dl>
+        <ExportLink register="capa" searchParams={searchParams} />
       </header>
 
       <UrlFilters fields={fields} ariaLabel="Filter actions" />
