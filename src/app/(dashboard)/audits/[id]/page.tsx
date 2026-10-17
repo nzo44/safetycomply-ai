@@ -13,7 +13,7 @@ import { EvidenceLinks } from '@/components/compliance/chips';
 import { IncidentTimeline } from '@/components/incidents/IncidentTimeline';
 import { ActionPanel } from '@/components/ui/action-panel';
 import { can } from '@/lib/auth/rbac';
-import { getActiveSite, requireUser } from '@/lib/auth/session';
+import { getActiveSite, requireModule } from '@/lib/auth/session';
 import { computeScore } from '@/lib/audits/score';
 import {
   getAuditTimeline, getExecutionData, getInspectionDetail, getLinkableCapas, getNcrTarget, getNcrTargetByQuestion,
@@ -23,7 +23,7 @@ import { one, withParams, type SearchParams } from '@/lib/data/params';
 import { fmtDate, fmtDayInZone } from '@/lib/utils';
 
 export default async function InspectionPage({ params, searchParams }: { params: { id: string }; searchParams: SearchParams }) {
-  const user = await requireUser();
+  const user = await requireModule('audits');
   const site = await getActiveSite(user);
   if (!site) notFound();
 

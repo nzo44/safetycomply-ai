@@ -10,7 +10,7 @@ import { LandfillCapacityGauge } from '@/components/waste/LandfillCapacityGauge'
 import { WasteManifestModal } from '@/components/waste/WasteManifestModal';
 import { WasteManifestTable } from '@/components/waste/WasteManifestTable';
 import { can } from '@/lib/auth/rbac';
-import { getActiveSite, requireUser } from '@/lib/auth/session';
+import { getActiveSite, requireModule } from '@/lib/auth/session';
 import { getDischargeTarget, getWasteAnalytics, getWasteManifests, parseManifestParams } from '@/lib/data/waste';
 import { one, withParams, type SearchParams } from '@/lib/data/params';
 import { toOptions } from '@/lib/incidents-meta';
@@ -24,7 +24,7 @@ const FIELDS: FilterField[] = [
 ];
 
 export default async function WastePage({ searchParams }: { searchParams: SearchParams }) {
-  const user = await requireUser();
+  const user = await requireModule('waste');
   const site = await getActiveSite(user);
   if (!site) {
     return <p className="text-sm text-steel">No site is assigned to your account. Ask an administrator to add you to a site.</p>;

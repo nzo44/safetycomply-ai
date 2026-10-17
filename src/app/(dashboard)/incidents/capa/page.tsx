@@ -6,7 +6,7 @@ import { UrlFilters, type FilterField } from '@/components/ui/url-filters';
 import { ExportLink } from '@/components/ui/export-link';
 import { PRIORITY_LABEL } from '@/lib/compliance-meta';
 import { can } from '@/lib/auth/rbac';
-import { getActiveSite, requireUser } from '@/lib/auth/session';
+import { getActiveSite, requireModule } from '@/lib/auth/session';
 import { getCapaBoard, getCapaStats, parseCapaFilters } from '@/lib/data/capa';
 import { getSiteUsersWithRole } from '@/lib/data/incidents';
 import type { SearchParams } from '@/lib/data/params';
@@ -21,7 +21,7 @@ const COLUMNS: { status: CapaStatus; title: string; note?: string }[] = [
 ];
 
 export default async function CapaBoardPage({ searchParams }: { searchParams: SearchParams }) {
-  const user = await requireUser();
+  const user = await requireModule('incidents');
   const site = await getActiveSite(user);
   if (!site) return <p className="text-sm text-steel">No site is assigned to your account.</p>;
 

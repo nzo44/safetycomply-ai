@@ -9,7 +9,7 @@ import { HazardList } from '@/components/risk/HazardList';
 import { RiskMatrix, type RiskMatrixMarker } from '@/components/risk/RiskMatrix';
 import { ActionPanel } from '@/components/ui/action-panel';
 import { can } from '@/lib/auth/rbac';
-import { getActiveSite, requireUser } from '@/lib/auth/session';
+import { getActiveSite, requireModule } from '@/lib/auth/session';
 import { getSiteUsersWithRole } from '@/lib/data/incidents';
 import { one, withParams, type SearchParams } from '@/lib/data/params';
 import { getAssessmentDetail, getRiskTimeline } from '@/lib/data/risk';
@@ -17,7 +17,7 @@ import { approvalCheck, ASSESSMENT_TYPE_LABEL, isReviewOverdue } from '@/lib/ris
 import { fmtDate } from '@/lib/utils';
 
 export default async function RiskAssessmentPage({ params, searchParams }: { params: { id: string }; searchParams: SearchParams }) {
-  const user = await requireUser();
+  const user = await requireModule('risk');
   const site = await getActiveSite(user);
   if (!site) notFound();
 

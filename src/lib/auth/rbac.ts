@@ -7,7 +7,8 @@ export type Permission =
   | 'capa:work' | 'capa:manage' | 'capa:verify'
   | 'waste:read' | 'waste:log' | 'waste:weigh' | 'waste:capacity'
   | 'risk:read' | 'risk:write' | 'risk:approve'
-  | 'inspection:read' | 'inspection:schedule' | 'inspection:execute' | 'checklist:manage';
+  | 'inspection:read' | 'inspection:schedule' | 'inspection:execute' | 'checklist:manage'
+  | 'users:manage';
 
 const ALL: Role[] = ['ADMIN', 'HSE_MANAGER', 'INSPECTOR', 'AUDITOR'];
 
@@ -38,7 +39,11 @@ const MATRIX: Record<Permission, Role[]> = {
   'inspection:schedule': ['ADMIN', 'HSE_MANAGER'],         // schedule, cancel, close minor NCRs
   'inspection:execute': ['ADMIN', 'HSE_MANAGER', 'INSPECTOR', 'AUDITOR'], // plus assigned-inspector check in code
   'checklist:manage': ['ADMIN', 'HSE_MANAGER'],            // templates are visible org-wide
+
+  'users:manage': ['ADMIN'],                               // choose which modules each user can open
 };
+
+export const PERMISSIONS = Object.keys(MATRIX) as Permission[];
 
 export class ForbiddenError extends Error {
   constructor(message = 'You do not have permission to do this.') {

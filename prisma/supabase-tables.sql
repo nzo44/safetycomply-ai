@@ -598,4 +598,14 @@ ALTER TABLE audit_inspections ADD CONSTRAINT completed_has_date
 ALTER TABLE inspection_responses ADD CONSTRAINT failed_item_has_finding
   CHECK (result <> 'NON_COMPLIANT' OR btrim(coalesce("findingDescription", '')) <> '');
 
+-- Per-user module access (same as prisma/user-modules.sql)
+CREATE TABLE IF NOT EXISTS "user_modules" (
+    "userId" UUID NOT NULL,
+    "module" TEXT NOT NULL,
+    CONSTRAINT "user_modules_pkey" PRIMARY KEY ("userId", "module"),
+    CONSTRAINT "user_modules_module_check" CHECK ("module" IN ('compliance', 'incidents', 'waste', 'risk', 'audits')),
+    CONSTRAINT "user_modules_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+ALTER TABLE "user_modules" ENABLE ROW LEVEL SECURITY;
+
 COMMIT;

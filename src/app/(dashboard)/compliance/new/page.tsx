@@ -2,11 +2,11 @@ import { notFound } from 'next/navigation';
 import { createRequirement } from '@/actions/compliance/requirements';
 import { RequirementForm } from '@/components/compliance/requirement-form';
 import { can } from '@/lib/auth/rbac';
-import { getActiveSite, requireUser } from '@/lib/auth/session';
+import { getActiveSite, requireModule } from '@/lib/auth/session';
 import { getSiteUsers } from '@/lib/data/compliance';
 
 export default async function NewRequirementPage() {
-  const user = await requireUser();
+  const user = await requireModule('compliance');
   const site = await getActiveSite(user);
   if (!site || !can(user.role, 'requirement:write')) notFound();
 

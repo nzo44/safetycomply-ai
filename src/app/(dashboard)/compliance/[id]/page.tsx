@@ -7,13 +7,13 @@ import { AuditForm } from '@/components/compliance/audit-form';
 import { EvidenceLinks } from '@/components/compliance/chips';
 import { StatusBadge } from '@/components/compliance/status-badge';
 import { can } from '@/lib/auth/rbac';
-import { getActiveSite, requireUser } from '@/lib/auth/session';
+import { getActiveSite, requireModule } from '@/lib/auth/session';
 import { CATEGORY_LABEL, PRIORITY_LABEL } from '@/lib/compliance-meta';
 import { getRequirement } from '@/lib/data/compliance';
 import { fmtDate } from '@/lib/utils';
 
 export default async function RequirementPage({ params }: { params: { id: string } }) {
-  const user = await requireUser();
+  const user = await requireModule('compliance');
   const site = await getActiveSite(user);
   if (!site) notFound();
   const r = await getRequirement(params.id, site.id);

@@ -80,3 +80,7 @@ In Supabase, add `<NEXT_PUBLIC_SITE_URL>/callback` to Authentication, URL Config
 Evidence can be uploaded files or `http(s)` links. Files go to a private Supabase bucket: a Server Action checks the user and the file, returns a one-time signed upload token, and the browser sends the file straight to storage. Records store a reference like `evidence/<siteId>/<uuid>-<name>`. Pages never contain file URLs: `/api/evidence?ref=...` checks site access on every click and redirects to a signed URL that expires after 60 seconds. This needs `SUPABASE_SERVICE_ROLE_KEY` (server-only) and `prisma/supabase-storage.sql`.
 
 Files uploaded in a form that is then abandoned stay in the bucket (a periodic cleanup job is not built yet). Toasts come from `ToastProvider` in the dashboard layout: `useToast()` for direct messages and `useResultToast(state)` for Server Action results.
+
+## User access
+
+Admins can limit which modules each user sees at `/admin/users`. Run `prisma/user-modules.sql` in the Supabase SQL Editor first.

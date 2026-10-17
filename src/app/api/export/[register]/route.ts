@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
+import { hasModule } from '@/lib/auth/modules';
 import { can } from '@/lib/auth/rbac';
 import { getActiveSite, getCurrentUser } from '@/lib/auth/session';
 import type { SearchParams } from '@/lib/data/params';
 import { tableToCsv } from '@/lib/export/csv';
+import { EXPORT_MODULE } from '@/lib/export/modules';
 import { EXPORTS, isExportKey } from '@/lib/export/registers';
 import { tableToXlsx, XLSX_CONTENT_TYPE } from '@/lib/export/xlsx';
 
@@ -20,6 +22,10 @@ export async function GET(req: Request, { params }: { params: { register: string
   if (!isExportKey(params.register)) return NextResponse.json({ error: 'Unknown export.' }, { status: 404 });
   const def = EXPORTS[params.register];
   if (!can(user.role, def.permission)) return NextResponse.json({ error: 'Your role does not allow this export.' }, { status: 403 });
+
+  if (!hasModule(user, EXPORT_MODULE[params.register])) {
+    return NextResponse.json({ error: 'You do not have access to this module.' }, { status: 403 });
+  }
 
   const site = await getActiveSite(user);
   if (!site) return NextResponse.json({ error: 'No site is assigned to your account.' }, { status: 403 });

@@ -2,12 +2,12 @@ import { notFound } from 'next/navigation';
 import { updateRequirement } from '@/actions/compliance/requirements';
 import { RequirementForm } from '@/components/compliance/requirement-form';
 import { can } from '@/lib/auth/rbac';
-import { getActiveSite, requireUser } from '@/lib/auth/session';
+import { getActiveSite, requireModule } from '@/lib/auth/session';
 import { getRequirement, getSiteUsers } from '@/lib/data/compliance';
 import { toDateInput } from '@/lib/utils';
 
 export default async function EditRequirementPage({ params }: { params: { id: string } }) {
-  const user = await requireUser();
+  const user = await requireModule('compliance');
   const site = await getActiveSite(user);
   if (!site || !can(user.role, 'requirement:write')) notFound();
   const r = await getRequirement(params.id, site.id);

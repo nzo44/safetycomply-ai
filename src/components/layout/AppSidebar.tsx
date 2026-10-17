@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  AlertTriangle, ClipboardCheck, ClipboardList, LayoutDashboard, LogOut, Menu, Recycle, Scale, ShieldCheck, X,
+  AlertTriangle, ClipboardCheck, ClipboardList, LayoutDashboard, LogOut, Menu, Recycle, Scale, ShieldCheck, Users, X,
   type LucideIcon,
 } from 'lucide-react';
 import { signOut } from '@/actions/auth/session';
+import type { AppModule } from '@/lib/auth/modules';
 import { SiteSwitcher, type SiteOption } from './SiteSwitcher';
 
 interface NavItem {
@@ -17,15 +18,20 @@ interface NavItem {
   /** Match only this exact path (used by the overview, which is the prefix of every route). */
   exact?: boolean;
   badge?: 'incidentsPending';
+  /** Hidden from users who are not allowed this module. */
+  module?: AppModule;
+  /** Only shown to administrators. */
+  adminOnly?: boolean;
 }
 
 const NAV: NavItem[] = [
   { href: '/', label: 'Executive Overview', icon: LayoutDashboard, exact: true },
-  { href: '/compliance', label: 'Legal Compliance Matrix', icon: Scale },
-  { href: '/incidents', label: 'Incidents & CAPA', icon: AlertTriangle, badge: 'incidentsPending' },
-  { href: '/waste', label: 'Industrial Waste Engine', icon: Recycle },
-  { href: '/risk', label: 'Risk Assessment & HIRA', icon: ClipboardCheck },
-  { href: '/audits', label: 'Audits & Field Inspections', icon: ClipboardList },
+  { href: '/compliance', label: 'Legal Compliance Matrix', icon: Scale, module: 'compliance' },
+  { href: '/incidents', label: 'Incidents & CAPA', icon: AlertTriangle, badge: 'incidentsPending', module: 'incidents' },
+  { href: '/waste', label: 'Industrial Waste Engine', icon: Recycle, module: 'waste' },
+  { href: '/risk', label: 'Risk Assessment & HIRA', icon: ClipboardCheck, module: 'risk' },
+  { href: '/audits', label: 'Audits & Field Inspections', icon: ClipboardList, module: 'audits' },
+  { href: '/admin/users', label: 'User access', icon: Users, adminOnly: true },
 ];
 
 export interface AppSidebarProps {
@@ -36,6 +42,9 @@ export interface AppSidebarProps {
   userName: string;
   roleLabel: string;
   pendingIncidents: number;
+  /** null = every module. Otherwise only these appear in the menu. */
+  allowedModules: AppModule[] | null;
+  isAdmin: boolean;
   sites: SiteOption[];
   activeSiteId: string | null;
 }
@@ -67,7 +76,9 @@ function SidebarBody({
 
       <nav aria-label="Primary" className="flex-1 overflow-y-auto px-3 py-3">
         <ul className="space-y-1">
-          {NAV.map((item) => {
+          {NAV.filter((item) =>
+            item.adminOnly ? props.isAdmin : !item.module || props.allowedModules === null || props.allowedModules.includes(item.module),
+          ).map((item) => {
             const active = item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);
             const Icon = item.icon;
             const n = item.badge ? counts[item.badge] : 0;

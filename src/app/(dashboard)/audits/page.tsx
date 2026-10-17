@@ -10,7 +10,7 @@ import { Pagination } from '@/components/ui/pagination';
 import { UrlFilters, type FilterField } from '@/components/ui/url-filters';
 import { ExportLink } from '@/components/ui/export-link';
 import { can } from '@/lib/auth/rbac';
-import { getActiveSite, requireUser } from '@/lib/auth/session';
+import { getActiveSite, requireModule } from '@/lib/auth/session';
 import { INSPECTION_FILTER_LABEL, STANDARD_LABEL } from '@/lib/audits/meta';
 import {
   getAuditStats, getChecklistOptions, getExecutionData, getInspections, getNcrRegister, parseInspectionFilters,
@@ -29,7 +29,7 @@ const FIELDS: FilterField[] = [
 ];
 
 export default async function AuditsPage({ searchParams }: { searchParams: SearchParams }) {
-  const user = await requireUser();
+  const user = await requireModule('audits');
   const site = await getActiveSite(user);
   if (!site) return <p className="text-sm text-steel">No site is assigned to your account. Ask an administrator to add you to a site.</p>;
 

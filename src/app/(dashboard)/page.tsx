@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { AlertTriangle, ArrowRight, ClipboardCheck, ClipboardList, Recycle, Scale, ShieldAlert } from 'lucide-react';
 import { KpiCard, Stat, StatLine } from '@/components/dashboard/KpiCard';
 import { ScoreRing } from '@/components/dashboard/ScoreRing';
+import { hasModule, type AppModule } from '@/lib/auth/modules';
 import { getActiveSite, requireUser } from '@/lib/auth/session';
 import { getExecutiveSummary } from '@/lib/data/dashboard';
 import { fmtDateTime, fmtTons } from '@/lib/utils';
@@ -56,6 +57,7 @@ export default async function ExecutiveOverviewPage() {
   }
 
   const { compliance, capa, incidents, highSeverityOpen, waste, audits, risks } = await getExecutiveSummary(site.id, site.timezone);
+  const show = (m: AppModule) => hasModule(user, m);
 
   const hazShare = waste.totalTons > 0 ? (waste.hazardousTons / waste.totalTons) * 100 : 0;
   const trend =
@@ -85,7 +87,8 @@ export default async function ExecutiveOverviewPage() {
       </header>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <KpiCard
+        {show('compliance') && (
+          <KpiCard
           title="Legal compliance"
           href="/compliance"
           icon={Scale}
@@ -101,8 +104,10 @@ export default async function ExecutiveOverviewPage() {
             </dl>
           </div>
         </KpiCard>
+        )}
 
-        <KpiCard
+        {show('incidents') && (
+          <KpiCard
           title="Corrective actions and incidents"
           href="/incidents"
           icon={AlertTriangle}
@@ -124,8 +129,10 @@ export default async function ExecutiveOverviewPage() {
             </div>
           </dl>
         </KpiCard>
+        )}
 
-        <KpiCard title={`Industrial waste, ${waste.label}`} href="/waste" icon={Recycle} footer={trend}>
+        {show('waste') && (
+          <KpiCard title={`Industrial waste, ${waste.label}`} href="/waste" icon={Recycle} footer={trend}>
           <dl className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <Stat label="Hazardous" value={<>{fmtTons(waste.hazardousTons)}<span className="ml-1 text-base font-medium text-slate-500">t</span></>} tone={waste.hazardousTons > 0 ? 'crit' : 'neutral'} />
@@ -148,8 +155,10 @@ export default async function ExecutiveOverviewPage() {
             )}
           </dl>
         </KpiCard>
+        )}
 
-        <KpiCard
+        {show('audits') && (
+          <KpiCard
           title="Audit health"
           href="/audits"
           icon={ClipboardList}
@@ -163,12 +172,14 @@ export default async function ExecutiveOverviewPage() {
             </dl>
           </div>
         </KpiCard>
+        )}
       </div>
 
       <section aria-labelledby="quick-actions" className="space-y-3">
         <h2 id="quick-actions" className="font-display text-xl font-semibold text-white">Quick actions</h2>
         <div className="grid gap-4 md:grid-cols-3">
-          <ActionCard
+          {show('incidents') && (
+            <ActionCard
             href="/incidents"
             icon={ShieldAlert}
             title="Incidents and CAPA"
@@ -176,7 +187,9 @@ export default async function ExecutiveOverviewPage() {
             stat={`${incidents.underInvestigation} under investigation, ${capa.overdue} overdue`}
             tone={capa.overdue > 0 ? 'crit' : incidents.underInvestigation > 0 ? 'warn' : 'ok'}
           />
-          <ActionCard
+          )}
+          {show('risk') && (
+            <ActionCard
             href="/risk"
             icon={ClipboardCheck}
             title="Risk matrix (HIRA)"
@@ -184,7 +197,9 @@ export default async function ExecutiveOverviewPage() {
             stat={`${risks.inReview} awaiting review, ${risks.overdue} reviews overdue`}
             tone={risks.overdue > 0 ? 'crit' : risks.inReview > 0 ? 'warn' : 'ok'}
           />
-          <ActionCard
+          )}
+          {show('audits') && (
+            <ActionCard
             href="/audits"
             icon={ClipboardList}
             title="Audits and inspections"
@@ -192,6 +207,7 @@ export default async function ExecutiveOverviewPage() {
             stat={`${audits.overdue} overdue inspections, ${audits.openNcrs} open NCRs`}
             tone={audits.overdue > 0 ? 'crit' : audits.openNcrs > 0 ? 'warn' : 'ok'}
           />
+          )}
         </div>
       </section>
     </div>

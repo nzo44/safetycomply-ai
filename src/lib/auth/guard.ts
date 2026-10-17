@@ -1,3 +1,4 @@
+import { hasModule, moduleOfPermission } from './modules';
 import { can, ForbiddenError, hasSiteAccess, type Permission } from './rbac';
 import { getActiveSite, getCurrentUser } from './session';
 
@@ -6,6 +7,8 @@ export async function authorize(permission: Permission, siteId?: string) {
   const user = await getCurrentUser();
   if (!user) throw new ForbiddenError('Your session has expired. Sign in again.');
   if (!can(user.role, permission)) throw new ForbiddenError('Your role does not allow this action.');
+  const mod = moduleOfPermission(permission);
+  if (mod && !hasModule(user, mod)) throw new ForbiddenError('You do not have access to this module.');
 
   if (siteId) {
     if (!hasSiteAccess(user, siteId)) throw new ForbiddenError('You do not have access to this site.');

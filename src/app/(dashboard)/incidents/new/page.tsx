@@ -1,11 +1,11 @@
 import { notFound } from 'next/navigation';
 import { IncidentForm } from '@/components/incidents/incident-form';
 import { can } from '@/lib/auth/rbac';
-import { getActiveSite, requireUser } from '@/lib/auth/session';
+import { getActiveSite, requireModule } from '@/lib/auth/session';
 import { toZonedLocalInput } from '@/lib/utils';
 
 export default async function NewIncidentPage() {
-  const user = await requireUser();
+  const user = await requireModule('incidents');
   const site = await getActiveSite(user);
   if (!site || !can(user.role, 'incident:report')) notFound();
 

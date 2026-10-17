@@ -256,6 +256,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   sites                UserSite[]
+  modules              UserModule[]
   ownedRequirements    LegalRequirement[]     @relation("RequirementOwner")
   conductedAudits      ComplianceAudit[]      @relation("AuditAuditor")
   reportedIncidents    Incident[]             @relation("IncidentReporter")
@@ -313,6 +314,17 @@ model Site {
   ncrs               NonConformanceReport[]
 
   @@map("sites")
+}
+
+/// Optional per-user module restriction. No rows = every module the role allows. See prisma/user-modules.sql.
+model UserModule {
+  userId String @db.Uuid
+  module String // compliance | incidents | waste | risk | audits
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, module])
+  @@map("user_modules")
 }
 
 /// Site-access scoping (many-to-many). The global role lives on User.

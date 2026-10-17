@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Plus, ListChecks } from 'lucide-react';
 import { can } from '@/lib/auth/rbac';
-import { getActiveSite, requireUser } from '@/lib/auth/session';
+import { getActiveSite, requireModule } from '@/lib/auth/session';
 import { getCapaStats } from '@/lib/data/capa';
 import { getIncidents, getIncidentStats, parseIncidentFilters } from '@/lib/data/incidents';
 import type { SearchParams } from '@/lib/data/params';
@@ -23,7 +23,7 @@ const FIELDS: FilterField[] = [
 ];
 
 export default async function IncidentsPage({ searchParams }: { searchParams: SearchParams }) {
-  const user = await requireUser();
+  const user = await requireModule('incidents');
   const site = await getActiveSite(user);
   if (!site) return <p className="text-sm text-steel">No site is assigned to your account. Ask an administrator to add you to a site.</p>;
 

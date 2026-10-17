@@ -10,13 +10,13 @@ import { RcaSection } from '@/components/incidents/RcaSection';
 import { ActionPanel } from '@/components/ui/action-panel';
 import { PRIORITY_LABEL } from '@/lib/compliance-meta';
 import { can } from '@/lib/auth/rbac';
-import { getActiveSite, requireUser } from '@/lib/auth/session';
+import { getActiveSite, requireModule } from '@/lib/auth/session';
 import { getIncidentDetail, getIncidentTimeline, getSiteUsersWithRole } from '@/lib/data/incidents';
 import { CAPA_TYPE_LABEL, INCIDENT_TYPE_LABEL, toOptions } from '@/lib/incidents-meta';
 import { fmtDate, fmtDateTime, todayInput } from '@/lib/utils';
 
 export default async function IncidentPage({ params }: { params: { id: string } }) {
-  const user = await requireUser();
+  const user = await requireModule('incidents');
   const site = await getActiveSite(user);
   if (!site) notFound();
 

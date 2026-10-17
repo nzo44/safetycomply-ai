@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { can } from '@/lib/auth/rbac';
-import { getActiveSite, requireUser } from '@/lib/auth/session';
+import { getActiveSite, requireModule } from '@/lib/auth/session';
 import { getComplianceStats, getMatrix, parseFilters, toMatrixRow } from '@/lib/data/compliance';
 import type { SearchParams } from '@/lib/data/params';
 import { StatusBar } from '@/components/compliance/status-bar';
@@ -11,7 +11,7 @@ import { ComplianceFilterBar } from '@/components/compliance/ComplianceFilterBar
 import { ComplianceWorkspace } from '@/components/compliance/ComplianceWorkspace';
 
 export default async function CompliancePage({ searchParams }: { searchParams: SearchParams }) {
-  const user = await requireUser();
+  const user = await requireModule('compliance');
   const site = await getActiveSite(user);
   if (!site) {
     return <p className="text-sm text-steel">No site is assigned to your account. Ask an administrator to add you to a site.</p>;

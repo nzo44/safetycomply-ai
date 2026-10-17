@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { PrintButton } from '@/components/risk/PrintButton';
 import { can } from '@/lib/auth/rbac';
-import { getActiveSite, requireUser } from '@/lib/auth/session';
+import { getActiveSite, requireModule } from '@/lib/auth/session';
 import {
   INSPECTION_STATUS_LABEL, NCR_SEVERITY_LABEL, NCR_STATUS_LABEL, RESULT_LABEL, STANDARD_LABEL,
 } from '@/lib/audits/meta';
@@ -13,7 +13,7 @@ import { fmtDate, fmtDayInZone } from '@/lib/utils';
 
 /** Printable inspection report. Use the browser's "Save as PDF" from the print dialog. */
 export default async function InspectionReportPage({ params }: { params: { id: string } }) {
-  const user = await requireUser();
+  const user = await requireModule('audits');
   if (!can(user.role, 'inspection:read')) notFound();
   const site = await getActiveSite(user);
   if (!site) notFound();

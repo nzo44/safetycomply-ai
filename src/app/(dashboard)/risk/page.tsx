@@ -5,7 +5,7 @@ import { ActionPanel } from '@/components/ui/action-panel';
 import { UrlFilters, type FilterField } from '@/components/ui/url-filters';
 import { ExportLink } from '@/components/ui/export-link';
 import { can } from '@/lib/auth/rbac';
-import { getActiveSite, requireUser } from '@/lib/auth/session';
+import { getActiveSite, requireModule } from '@/lib/auth/session';
 import type { SearchParams } from '@/lib/data/params';
 import { getAssessments, getRiskStats, parseRiskFilters } from '@/lib/data/risk';
 import { toOptions } from '@/lib/incidents-meta';
@@ -25,7 +25,7 @@ const FIELDS: FilterField[] = [
 ];
 
 export default async function RiskPage({ searchParams }: { searchParams: SearchParams }) {
-  const user = await requireUser();
+  const user = await requireModule('risk');
   const site = await getActiveSite(user);
   if (!site) return <p className="text-sm text-steel">No site is assigned to your account. Ask an administrator to add you to a site.</p>;
 

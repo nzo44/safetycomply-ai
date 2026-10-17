@@ -3,13 +3,13 @@ import { notFound } from 'next/navigation';
 import { PrintButton } from '@/components/risk/PrintButton';
 import { RiskLevelChip } from '@/components/risk/badges';
 import { RiskMatrix, type RiskMatrixMarker } from '@/components/risk/RiskMatrix';
-import { getActiveSite, requireUser } from '@/lib/auth/session';
+import { getActiveSite, requireModule } from '@/lib/auth/session';
 import { getAssessmentDetail } from '@/lib/data/risk';
 import { ASSESSMENT_STATUS_LABEL, ASSESSMENT_TYPE_LABEL, CONTROL_LABEL } from '@/lib/risk/workflow';
 import { fmtDate, fmtDayInZone } from '@/lib/utils';
 
 export default async function PrintPage({ params }: { params: { id: string } }) {
-  const user = await requireUser();
+  const user = await requireModule('risk');
   const site = await getActiveSite(user);
   if (!site) notFound();
   const a = await getAssessmentDetail(params.id, site.id);

@@ -1,6 +1,7 @@
 import type { Role } from '@prisma/client';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { ToastProvider } from '@/components/ui/toast';
+import { hasModule } from '@/lib/auth/modules';
 import { getAccessibleSites, getActiveSite, requireUser } from '@/lib/auth/session';
 import { getNavCounts } from '@/lib/data/dashboard';
 
@@ -22,7 +23,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const user = await requireUser();
   const site = await getActiveSite(user);
   const [counts, sites] = await Promise.all([
-    site ? getNavCounts(site.id, user) : Promise.resolve({ incidentsPending: 0 }),
+    site && hasModule(user, 'incidents') ? getNavCounts(site.id, user) : Promise.resolve({ incidentsPending: 0 }),
     getAccessibleSites(user),
   ]);
   const region = regionName(site?.country);
@@ -37,6 +38,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
           userName={user.fullName}
           roleLabel={ROLE_LABEL[user.role]}
           pendingIncidents={counts.incidentsPending}
+          allowedModules={user.role === 'ADMIN' ? null : user.allowedModules}
+          isAdmin={user.role === 'ADMIN'}
           sites={sites}
           activeSiteId={site?.id ?? null}
         />
