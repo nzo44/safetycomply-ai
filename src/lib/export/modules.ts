@@ -10,4 +10,5 @@ export const EXPORT_MODULE = {
   risk: 'risk',
   inspections: 'audits',
   ncrs: 'audits',
+  permits: 'permits',
 } as const satisfies Record<ExportKey, AppModule>;

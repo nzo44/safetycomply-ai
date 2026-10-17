@@ -7,8 +7,10 @@ import { getMatrix, parseFilters, toMatrixRow } from '@/lib/data/compliance';
 import { getIncidents, parseIncidentFilters } from '@/lib/data/incidents';
 import type { SearchParams } from '@/lib/data/params';
 import { getAssessments, parseRiskFilters } from '@/lib/data/risk';
+import { getPermits, parsePermitParams } from '@/lib/data/permits';
 import { getWasteManifests, parseManifestParams } from '@/lib/data/waste';
 import { INCIDENT_STATUS_LABEL, INCIDENT_TYPE_LABEL, SEVERITY_LABEL } from '@/lib/incidents-meta';
+import { PERMIT_STATUS_LABEL, PERMIT_TYPE_LABEL } from '@/lib/permits/meta';
 import { LEVEL_META } from '@/lib/risk/matrix';
 import { ASSESSMENT_STATUS_LABEL, ASSESSMENT_TYPE_LABEL } from '@/lib/risk/workflow';
 import { MANIFEST_STATUS_LABEL, WASTE_TYPE_LABEL } from '@/lib/waste/meta';
@@ -106,6 +108,27 @@ export const EXPORTS = {
       { header: 'Weighbridge ticket', value: (r) => r.ticketNo },
       { header: 'Status note', value: (r) => r.statusNote },
       { header: 'Evidence links', value: (r) => r.evidenceUrls },
+    ],
+  ),
+
+  permits: define(
+    'permit:read',
+    async ({ siteId, sp }) => (await getPermits(siteId, { ...parsePermitParams(sp), page: 1, pageSize: MAX_ROWS })).rows,
+    [
+      { header: 'Permit', value: (r) => r.permitCode },
+      { header: 'Type', value: (r) => label(PERMIT_TYPE_LABEL, r.type) },
+      { header: 'Title', value: (r) => r.title },
+      { header: 'Location', value: (r) => r.location },
+      { header: 'Status', value: (r) => label(PERMIT_STATUS_LABEL, r.displayStatus) },
+      { header: 'Valid from', value: (r) => r.validFrom },
+      { header: 'Valid until', value: (r) => r.validTo },
+      { header: 'Requested by', value: (r) => r.requestedByName },
+      { header: 'Approved by', value: (r) => r.approvedByName },
+      { header: 'Hazards', value: (r) => r.hazards },
+      { header: 'Precautions', value: (r) => r.precautions },
+      { header: 'Crew', value: (r) => r.workers },
+      { header: 'Reason', value: (r) => r.statusNote },
+      { header: 'Close-out notes', value: (r) => r.closeoutNotes },
     ],
   ),
 

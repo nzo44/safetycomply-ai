@@ -1,6 +1,6 @@
 import type { Prisma } from '@prisma/client';
 
-export type ReferenceKind = 'INC' | 'CAPA' | 'RA' | 'WM' | 'INS' | 'NCR';
+export type ReferenceKind = 'INC' | 'CAPA' | 'RA' | 'WM' | 'INS' | 'NCR' | 'PTW';
 
 /** Atomic: the upsert's increment is a single SQL statement, so concurrent callers can't collide. */
 export async function nextReference(tx: Prisma.TransactionClient, kind: ReferenceKind) {

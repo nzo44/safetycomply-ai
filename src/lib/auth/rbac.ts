@@ -8,6 +8,7 @@ export type Permission =
   | 'waste:read' | 'waste:log' | 'waste:weigh' | 'waste:capacity'
   | 'risk:read' | 'risk:write' | 'risk:approve'
   | 'inspection:read' | 'inspection:schedule' | 'inspection:execute' | 'checklist:manage'
+  | 'permit:read' | 'permit:request' | 'permit:approve' | 'permit:operate'
   | 'users:manage';
 
 const ALL: Role[] = ['ADMIN', 'HSE_MANAGER', 'INSPECTOR', 'AUDITOR'];
@@ -39,6 +40,11 @@ const MATRIX: Record<Permission, Role[]> = {
   'inspection:schedule': ['ADMIN', 'HSE_MANAGER'],         // schedule, cancel, close minor NCRs
   'inspection:execute': ['ADMIN', 'HSE_MANAGER', 'INSPECTOR', 'AUDITOR'], // plus assigned-inspector check in code
   'checklist:manage': ['ADMIN', 'HSE_MANAGER'],            // templates are visible org-wide
+
+  'permit:read': ALL,
+  'permit:request': ['ADMIN', 'HSE_MANAGER', 'INSPECTOR'],   // raise a permit, cancel one awaiting approval
+  'permit:approve': ['ADMIN', 'HSE_MANAGER'],               // approve or reject (not your own, unless admin)
+  'permit:operate': ['ADMIN', 'HSE_MANAGER', 'INSPECTOR'],  // start work, close out, cancel
 
   'users:manage': ['ADMIN'],                               // choose which modules each user can open
 };

@@ -42,6 +42,7 @@ enum ActivityEntity {
   CHECKLIST
   INSPECTION
   NCR
+  PERMIT
 }
 
 // ── Module 1: compliance ─────────────────────────────────────
@@ -257,6 +258,8 @@ model User {
 
   sites                UserSite[]
   modules              UserModule[]
+  requestedPermits     WorkPermit[]           @relation("PermitRequester")
+  approvedPermits      WorkPermit[]           @relation("PermitApprover")
   ownedRequirements    LegalRequirement[]     @relation("RequirementOwner")
   conductedAudits      ComplianceAudit[]      @relation("AuditAuditor")
   reportedIncidents    Incident[]             @relation("IncidentReporter")
@@ -312,6 +315,7 @@ model Site {
   riskAssessments    RiskAssessment[]
   auditInspections   AuditInspection[]
   ncrs               NonConformanceReport[]
+  workPermits        WorkPermit[]
 
   @@map("sites")
 }
@@ -902,4 +906,46 @@ model NonConformanceReport {
   @@index([inspectionId])
   @@index([capaTaskId])
   @@map("non_conformance_reports")
+}
+
+// ═════════════════════════════════════════════════════════════
+// PERMITS TO WORK. See prisma/permits.sql.
+// `type` and `status` are text, checked in the app and by the database (no Postgres enums).
+// "Expired" is never stored: it is derived from `validTo` (see src/lib/permits/meta.ts).
+// ═════════════════════════════════════════════════════════════
+
+model WorkPermit {
+  id            String    @id @default(cuid())
+  permitCode    String    @unique // "PTW-2026-0001", server-generated
+  siteId        String
+  requestedById String    @db.Uuid
+  approvedById  String?   @db.Uuid
+
+  type          String    // HOT_WORK | CONFINED_SPACE | WORK_AT_HEIGHT | ELECTRICAL | EXCAVATION | OTHER
+  status        String    @default("REQUESTED") // REQUESTED | APPROVED | IN_PROGRESS | CLOSED | REJECTED | CANCELLED
+  title         String
+  location      String
+  description   String    @db.Text
+  hazards       String    @db.Text
+  precautions   String    @db.Text
+  workers       String?   @db.Text // crew or contractor names
+
+  validFrom     DateTime
+  validTo       DateTime
+  approvedAt    DateTime?
+  startedAt     DateTime?
+  closedAt      DateTime?
+  statusNote    String?   @db.Text // reason for reject or cancel
+  closeoutNotes String?   @db.Text
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  site        Site  @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  requestedBy User  @relation("PermitRequester", fields: [requestedById], references: [id], onDelete: Restrict)
+  approvedBy  User? @relation("PermitApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+
+  @@index([siteId, status])
+  @@index([siteId, validTo])
+  @@map("work_permits")
 }

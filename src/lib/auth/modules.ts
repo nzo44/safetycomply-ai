@@ -5,7 +5,7 @@
  * `allowedModules === null` means unrestricted: the user gets every module their role permits.
  * A list means the user is limited to those modules. Administrators are never restricted.
  */
-export const APP_MODULES = ['compliance', 'incidents', 'waste', 'risk', 'audits'] as const;
+export const APP_MODULES = ['compliance', 'incidents', 'waste', 'risk', 'audits', 'permits'] as const;
 export type AppModule = (typeof APP_MODULES)[number];
 export type ModuleAccess = AppModule[] | null;
 
@@ -15,6 +15,7 @@ export const MODULE_LABEL: Record<AppModule, string> = {
   waste: 'Waste and discharge',
   risk: 'Risk assessments',
   audits: 'Audits and inspections',
+  permits: 'Permits to work',
 };
 
 export const isAppModule = (v: unknown): v is AppModule =>
@@ -30,6 +31,7 @@ const PREFIX_MODULE: Record<string, AppModule> = {
   waste: 'waste',
   risk: 'risk',
   inspection: 'audits', checklist: 'audits',
+  permit: 'permits',
 };
 
 export const moduleOfPermission = (permission: string): AppModule | null =>

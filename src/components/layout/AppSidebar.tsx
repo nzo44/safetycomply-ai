@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  AlertTriangle, ClipboardCheck, ClipboardList, LayoutDashboard, LogOut, Menu, Recycle, Scale, ShieldCheck, Users, X,
+  AlertTriangle, ClipboardCheck, ClipboardList, FileCheck, LayoutDashboard, LogOut, Menu, Recycle, Scale, ShieldCheck, Users, X,
   type LucideIcon,
 } from 'lucide-react';
 import { signOut } from '@/actions/auth/session';
@@ -31,6 +31,7 @@ const NAV: NavItem[] = [
   { href: '/waste', label: 'Industrial Waste Engine', icon: Recycle, module: 'waste' },
   { href: '/risk', label: 'Risk Assessment & HIRA', icon: ClipboardCheck, module: 'risk' },
   { href: '/audits', label: 'Audits & Field Inspections', icon: ClipboardList, module: 'audits' },
+  { href: '/permits', label: 'Permits to Work', icon: FileCheck, module: 'permits' },
   { href: '/admin/users', label: 'User access', icon: Users, adminOnly: true },
 ];
 
